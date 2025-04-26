@@ -18,11 +18,12 @@ from forecasting_tools import (
     run_benchmark_streamlit_page,
 )
 
-from main import TemplateForecaster
+from custom_forecaster import CustomForecaster
+from utils import load_forecasters_dict
 
 logger = logging.getLogger(__name__)
 
-
+forecasters_dict = load_forecasters_dict()
 
 async def benchmark_forecast_bot(mode: str) -> None:
     """
@@ -58,53 +59,10 @@ async def benchmark_forecast_bot(mode: str) -> None:
 
     with MonetaryCostManager() as cost_manager:
         bots = [
-            # TemplateForecaster(
-            #     predictions_per_research_report=5,
-            #     llms={
-            #         "default": GeneralLlm(
-            #             model="meta-llama/llama-4-maverick:free",
-            #             temperature=0.3,
-            #             timeout=40,
-            #             allowed_tries=2,
-            #         ),
-            #     },
-            # ),
-            # TemplateForecaster(
-            #     predictions_per_research_report=1,
-            #     llms={
-            #         "default": GeneralLlm(
-            #             model="thudm/glm-z1-9b:free",
-            #             temperature=0.3,
-            #             timeout=40,
-            #             allowed_tries=2,
-            #         ),
-            #     },
-            # ),
-            # TemplateForecaster(
-            #     predictions_per_research_report=1,
-            #     llms={
-            #         "default": GeneralLlm(
-            #             model="microsoft/mai-ds-r1:free",
-            #             temperature=0.3,
-            #             timeout=40,
-            #             allowed_tries=2,
-            #         ),
-            #     },
-            # ),
-            TemplateForecaster(
-                predictions_per_research_report=1,
-                llms={
-                    "default": "openrouter/meta-llama/llama-4-maverick:free",
-                    "summarizer": "openrouter/meta-llama/llama-4-maverick:free",
-                },
-            ),
-            TemplateForecaster(
-                predictions_per_research_report=1,
-                llms={
-                    "default": "openrouter/openai/o4-mini",
-                    "summarizer": "openrouter/openai/gpt-4o-mini",
-                },
-            ),
+            CustomForecaster(
+                forecaster_description=forecasters_dict[model_name],
+                forecaster_name=model_name,
+            ) for model_name in list(forecasters_dict.keys())[:5]
 
             # Add other ForecastBots here (or same bot with different parameters)
         ]

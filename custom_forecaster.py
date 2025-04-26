@@ -3,6 +3,7 @@ import logging
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Callable, TypeVar, Union
+from utils import load_forecasters_dict
 
 from forecasting_tools import (
     BinaryQuestion,
@@ -18,14 +19,29 @@ from forecasting_tools import (
 logger = logging.getLogger(__name__)
 T = TypeVar('T', float, PredictedOptionList, NumericDistribution)
 
+forecasters_dict = load_forecasters_dict()
+
+model_name = "18-paranoid-conspiracy-minded-forecaster"
+forecaster_description = forecasters_dict[model_name]
 class CustomForecaster(TemplateForecaster):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, forecaster_description: str= "", forecaster_name: str= "", **kwargs):
         super().__init__(*args, **kwargs)
+        self.forecaster_description = forecaster_description
+        self.forecaster_name = forecaster_name
     
     def _build_base_prompt(self, question, research):
         """Creates the common base prompt sections used in all question types."""
+
         return f"""
             You are a professional forecaster interviewing for a job.
+
+            Your forecasting reflects the forecasting style described between '<<<< >>>>':
+
+            <<<<
+            {self.forecaster_description}
+            >>>>
+
+            Make sure you take into account your forecasting style when producing your answer.
 
             Your interview question is:
             {question.question_text}
@@ -56,6 +72,7 @@ class CustomForecaster(TemplateForecaster):
         reasoning = await self.get_llm("default", "llm").invoke(prompt)
         prediction = extractor_fn(reasoning, question)
         
+
         logger.info(
             f"Forecasted URL {question.page_url} as {prediction} with reasoning:\n{reasoning}"
         )
@@ -67,8 +84,11 @@ class CustomForecaster(TemplateForecaster):
     async def _run_forecast_on_binary(
         self, question: BinaryQuestion, research: str
     ) -> ReasonedPrediction[float]:
+        print("HERE")
         base_prompt = self._build_base_prompt(question, research)
-        
+        print("================")
+        print(base_prompt)
+        print("================")
         binary_specific = f"""
             Before answering you write:
             (a) The time left until the outcome to the question is known.
@@ -196,6 +216,10 @@ class CustomForecaster(TemplateForecaster):
 
 
 if __name__ == "__main__":
+    import argparse
+    from typing import Literal
+    import asyncio
+    from forecasting_tools import MetaculusApi
 
     logging.basicConfig(
         level=logging.INFO,
@@ -214,7 +238,7 @@ if __name__ == "__main__":
         "--mode",
         type=str,
         choices=["tournament", "quarterly_cup", "test_questions"],
-        default="tournament",
+        default="test_questions",
         help="Specify the run mode (default: tournament)",
     )
     args = parser.parse_args()
@@ -227,13 +251,15 @@ if __name__ == "__main__":
         "test_questions",
     ], "Invalid run mode"
 
-    template_bot = TemplateForecaster(
+    template_bot = CustomForecaster(
         research_reports_per_question=1,
-        predictions_per_research_report=5,
+        predictions_per_research_report=1,
         use_research_summary_to_forecast=False,
         publish_reports_to_metaculus=True,
         folder_to_save_reports_to=None,
         skip_previously_forecasted_questions=True,
+        forecaster_description=forecaster_description,
+        forecaster_name=model_name,
         llms={  # choose your model names or GeneralLlm llms here, otherwise defaults will be chosen for you
             "default": "openrouter/meta-llama/llama-4-maverick:free",
             "summarizer": "openrouter/meta-llama/llama-4-maverick:free",
