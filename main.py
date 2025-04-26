@@ -370,7 +370,7 @@ if __name__ == "__main__":
             #     timeout=40,
             #     allowed_tries=2,
             # ),
-            "summarizer": "openrouter/openai/gpt-4o-mini",
+            "summarizer": "openrouter/meta-llama/llama-4-maverick:free",
         },
     )
 
