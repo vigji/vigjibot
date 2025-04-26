@@ -172,6 +172,9 @@ class TemplateForecaster(ForecastBot):
             The last thing you write is your final answer as: "Probability: ZZ%", 0-100
             """
         )
+        logger.info(
+            f"Full prompt:\n{prompt}"
+        )
         reasoning = await self.get_llm("default", "llm").invoke(prompt)
         prediction: float = PredictionExtractor.extract_last_percentage_value(
             reasoning, max_prediction=1, min_prediction=0
@@ -222,6 +225,9 @@ class TemplateForecaster(ForecastBot):
             ...
             Option_N: Probability_N
             """
+        )
+        logger.info(
+            f"Full prompt:\n{prompt}"
         )
         reasoning = await self.get_llm("default", "llm").invoke(prompt)
         prediction: PredictedOptionList = (
@@ -292,6 +298,10 @@ class TemplateForecaster(ForecastBot):
             "
             """
         )
+        logger.info(
+            f"Full prompt:\n{prompt}"
+        )
+
         reasoning = await self.get_llm("default", "llm").invoke(prompt)
         prediction: NumericDistribution = (
             PredictionExtractor.extract_numeric_distribution_from_list_of_percentile_number_and_probability(
