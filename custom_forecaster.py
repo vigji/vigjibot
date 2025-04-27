@@ -4,8 +4,10 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Callable, TypeVar, Union
 from utils import load_forecasters_dict
+import asyncio
 
 from forecasting_tools import (
+    MetaculusQuestion,
     BinaryQuestion,
     MultipleChoiceQuestion,
     NumericDistribution,
@@ -24,6 +26,34 @@ forecasters_dict = load_forecasters_dict()
 model_name = "18-paranoid-conspiracy-minded-forecaster"
 forecaster_description = forecasters_dict[model_name]
 class CustomForecaster(TemplateForecaster):
+
+    _max_concurrent_questions = 5  # Set this to whatever works for your search-provider/ai-model rate limits
+    _concurrency_limiter = asyncio.Semaphore(_max_concurrent_questions)
+
+    # Cache research results per question URL across instances
+    _research_cache: dict[str, str] = {}
+
+    # Locks per question URL to avoid concurrent fetches of the same key
+    _research_locks: dict[str, asyncio.Lock] = {}
+
+    async def run_research(self, question: MetaculusQuestion) -> str:
+        key = question.page_url
+        # Fast path: already cached
+        if key in CustomForecaster._research_cache:
+            logger.info(f"Cache hit in CustomForecaster for URL {key}")
+            return CustomForecaster._research_cache[key]
+        # Ensure only one concurrent fetch per URL
+        lock = CustomForecaster._research_locks.setdefault(key, asyncio.Lock())
+        async with lock:
+            # Double-check cache inside lock
+            if key in CustomForecaster._research_cache:
+                logger.info(f"Cache hit in CustomForecaster for URL {key}; returning cached research.")
+                return CustomForecaster._research_cache[key]
+            # Perform actual fetch
+            research = await super().run_research(question)
+            CustomForecaster._research_cache[key] = research
+            return research
+
     def __init__(self, *args, forecaster_description: str= "", forecaster_name: str= "", **kwargs):
         super().__init__(*args, **kwargs)
         self.forecaster_description = forecaster_description
@@ -84,11 +114,8 @@ class CustomForecaster(TemplateForecaster):
     async def _run_forecast_on_binary(
         self, question: BinaryQuestion, research: str
     ) -> ReasonedPrediction[float]:
-        print("HERE")
         base_prompt = self._build_base_prompt(question, research)
-        print("================")
-        print(base_prompt)
-        print("================")
+
         binary_specific = f"""
             Before answering you write:
             (a) The time left until the outcome to the question is known.
@@ -213,6 +240,11 @@ class CustomForecaster(TemplateForecaster):
                 f"The outcome can not be lower than {question.lower_bound}."
             )
         return upper_bound_message, lower_bound_message
+    
+    def __repr__(self) -> str:
+        return f"<{self.__class__.__name__} name={self.forecaster_name!r}>"
+
+
 
 
 if __name__ == "__main__":

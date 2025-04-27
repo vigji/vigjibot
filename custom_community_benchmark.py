@@ -30,7 +30,7 @@ async def benchmark_forecast_bot(mode: str) -> None:
     Run a benchmark that compares your forecasts against the community prediction
     """
 
-    number_of_questions = 1   # Recommend 100+ for meaningful error bars, but 30 is faster/cheaper
+    number_of_questions = 3   # Recommend 100+ for meaningful error bars, but 30 is faster/cheaper
     if mode == "display":
         run_benchmark_streamlit_page()
         return
@@ -60,8 +60,20 @@ async def benchmark_forecast_bot(mode: str) -> None:
     with MonetaryCostManager() as cost_manager:
         bots = [
             CustomForecaster(
+                
+                research_reports_per_question=1,
+                predictions_per_research_report=1,
+                use_research_summary_to_forecast=False,
+                publish_reports_to_metaculus=False,
+                folder_to_save_reports_to=None,
+                skip_previously_forecasted_questions=False,
                 forecaster_description=forecasters_dict[model_name],
                 forecaster_name=model_name,
+                llms={  # choose your model names or GeneralLlm llms here, otherwise defaults will be chosen for you
+                    "default": "openrouter/sophosympatheia/rogue-rose-103b-v0.2:free",# "openrouter/meta-llama/llama-4-maverick:free",
+                    "summarizer": "openrouter/meta-llama/llama-4-maverick:free",
+                },
+
             ) for model_name in list(forecasters_dict.keys())[:5]
 
             # Add other ForecastBots here (or same bot with different parameters)
