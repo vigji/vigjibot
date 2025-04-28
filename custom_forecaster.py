@@ -198,7 +198,7 @@ class CustomForecaster(TemplateForecaster):
 
             You write your rationale remembering that good forecasters put extra weight on the status quo outcome since the world changes slowly most of the time.
 
-            The last thing you write is your final answer as: "Probability: ZZ%", 0-100
+            The last thing you write is your final answer as: "Probability: ZZ%", 0-100, indicating the probability of a Yes outcome.
         """
         
         prompt = clean_indents(base_prompt + binary_specific)
