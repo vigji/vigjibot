@@ -173,7 +173,15 @@ class CustomForecaster(TemplateForecaster):
         logger.info(f"Full prompt:\n{prompt}")
         
         reasoning = await self.get_llm("default", "llm").invoke(prompt)
+        print("FULL REASONING: ")
+        print("=====================")
+        print(reasoning)
+        print("=====================")
         prediction = extractor_fn(reasoning, question)
+        print("=======+++++++++++==========")
+        print("=========+++++++++++++++++==========")
+
+        
         
 
         logger.info(
@@ -284,6 +292,9 @@ class CustomForecaster(TemplateForecaster):
             Percentile 80: XX
             Percentile 90: XX
             "
+
+            Write every percentile value only once not to confuse the parser, and do not include any other text after the percentiles in your answer.
+            
         """
         
         prompt = clean_indents(base_prompt + numeric_specific)
@@ -404,7 +415,7 @@ if __name__ == "__main__":
         research_reports_per_question=1,
         predictions_per_research_report=1,
         use_research_summary_to_forecast=False,
-        publish_reports_to_metaculus=True,
+        publish_reports_to_metaculus=False,
         folder_to_save_reports_to=None,
         skip_previously_forecasted_questions=True,
         # forecaster_description=forecaster_description,
@@ -433,8 +444,8 @@ if __name__ == "__main__":
     elif run_mode == "test_questions":
         # Example questions are a good way to test the bot's performance on a single question
         EXAMPLE_QUESTIONS = [
-            "https://www.metaculus.com/questions/578/human-extinction-by-2100/",  # Human Extinction - Binary
-            # "https://www.metaculus.com/questions/14333/age-of-oldest-human-as-of-2100/",  # Age of Oldest Human - Numeric
+            # "https://www.metaculus.com/questions/578/human-extinction-by-2100/",  # Human Extinction - Binary
+            "https://www.metaculus.com/questions/14333/age-of-oldest-human-as-of-2100/",  # Age of Oldest Human - Numeric
             # "https://www.metaculus.com/questions/22427/number-of-new-leading-ai-labs/",  # Number of New Leading AI Labs - Multiple Choice
         ]
         template_bot.skip_previously_forecasted_questions = False

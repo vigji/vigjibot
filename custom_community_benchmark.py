@@ -30,7 +30,7 @@ async def benchmark_forecast_bot(mode: str) -> None:
     Run a benchmark that compares your forecasts against the community prediction.
     """
 
-    number_of_questions = 2   # Recommend 100+ for meaningful error bars, but 30 is faster/cheaper
+    number_of_questions = 1   # Recommend 100+ for meaningful error bars, but 30 is faster/cheaper
     if mode == "display":
         run_benchmark_streamlit_page()
         return
@@ -41,7 +41,7 @@ async def benchmark_forecast_bot(mode: str) -> None:
         one_year_from_now = datetime.now() + timedelta(days=365)
         api_filter = ApiFilter(
             allowed_statuses=["open"],
-            allowed_types=["binary"],
+            allowed_types=["numeric", "multiple_choice"],  #"binary", 
             num_forecasters_gte=40,
             scheduled_resolve_time_lt=one_year_from_now,
             includes_bots_in_aggregates=False,
@@ -58,25 +58,37 @@ async def benchmark_forecast_bot(mode: str) -> None:
         raise ValueError(f"Invalid mode: {mode}")
 
     with MonetaryCostManager() as cost_manager:
-        bots = [forecaster_factory(model_name)( 
+    #     bots = [forecaster_factory(model_name)( 
+    #             research_reports_per_question=1,
+    #             predictions_per_research_report=1,
+    #             use_research_summary_to_forecast=False,
+    #             publish_reports_to_metaculus=False,
+    #             folder_to_save_reports_to=None,
+    #             skip_previously_forecasted_questions=False,
+    #             # forecaster_description=forecasters_dict[model_name],
+    #             # forecaster_name=model_name,
+    #             llms={  # choose your model names or GeneralLlm llms here, otherwise defaults will be chosen for you
+    #                 # "summarizer": "openrouter/sophosympatheia/rogue-rose-103b-v0.2:free",# "openrouter/meta-llama/llama-4-maverick:free",
+    #                 # "default": "openrouter/meta-llama/llama-4-maverick:free",
+    #                 # "default": "openrouter/openai/gpt-4o-mini",
+    #                 "default": "openrouter/openai/gpt-4.1-mini",
+    #             },
+
+    #         ) for model_name in list(forecasters_dict.keys())
+    #     ]
+
+        bots = [forecaster_factory(list(forecasters_dict.keys())[0])( 
                 research_reports_per_question=1,
                 predictions_per_research_report=1,
                 use_research_summary_to_forecast=False,
                 publish_reports_to_metaculus=False,
                 folder_to_save_reports_to=None,
                 skip_previously_forecasted_questions=False,
-                # forecaster_description=forecasters_dict[model_name],
-                # forecaster_name=model_name,
                 llms={  # choose your model names or GeneralLlm llms here, otherwise defaults will be chosen for you
-                    # "summarizer": "openrouter/sophosympatheia/rogue-rose-103b-v0.2:free",# "openrouter/meta-llama/llama-4-maverick:free",
-                    # "default": "openrouter/meta-llama/llama-4-maverick:free",
-                    # "default": "openrouter/openai/gpt-4o-mini",
-                    "default": "openrouter/openai/o4-mini",
+                    "default": "openrouter/" + model,
                 },
 
-            ) for model_name in list(forecasters_dict.keys())
-
-            # Add other ForecastBots here (or same bot with different parameters)
+            ) for model in ["openai/o4-mini", "openai/gpt-4.1-mini", "openai/gpt-4.1", "anthropic/claude-3.7-sonnet", "anthropic/claude-3.5-haiku:beta"]
         ]
         bots = typeguard.check_type(bots, list[ForecastBot])
         benchmarks = await Benchmarker(
