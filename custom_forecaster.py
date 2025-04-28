@@ -1,11 +1,12 @@
 from main import TemplateForecaster
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any, Callable, TypeVar, Union
 from utils import load_forecasters_dict
 import asyncio
 import dotenv
+import json
 
 from forecasting_tools import (
     MetaculusQuestion,
@@ -31,28 +32,92 @@ class CustomForecaster(TemplateForecaster):
     _max_concurrent_questions = 10  # Set this to whatever works for your search-provider/ai-model rate limits
     _concurrency_limiter = asyncio.Semaphore(_max_concurrent_questions)
 
-    # Cache research results per question URL across instances
-    _research_cache: dict[str, str] = {}
-
-    # Locks per question URL to avoid concurrent fetches of the same key
+    # Updated cache structure to include timestamps
+    _research_cache: dict[str, dict[str, str]] = {}  # {url: {"data": research_data, "timestamp": iso_date}}
     _research_locks: dict[str, asyncio.Lock] = {}
+    
+    # Cache file path in project directory
+    _cache_file = Path(".research_cache.json")
+    _max_cache_age = timedelta(days=30)
+    _cache_loaded = False
+
+    @classmethod
+    def _load_cache_from_disk(cls):
+        """Load the research cache from disk if it exists."""
+        if cls._cache_file.exists():
+            try:
+                with open(cls._cache_file, "r") as f:
+                    cache_data = json.load(f)
+                
+                # Convert to our cache format and filter out expired entries
+                now = datetime.now()
+                for url, entry in cache_data.items():
+                    entry_date = datetime.fromisoformat(entry["timestamp"])
+                    # Only keep entries less than 30 days old
+                    if now - entry_date < cls._max_cache_age:
+                        cls._research_cache[url] = entry
+                
+                logger.info(f"Loaded {len(cls._research_cache)} valid cache entries from {cls._cache_file}")
+            except (json.JSONDecodeError, KeyError, ValueError) as e:
+                logger.warning(f"Error loading cache file: {e}. Starting with empty cache.")
+        cls._cache_loaded = True
+    
+    @classmethod
+    def _save_cache_to_disk(cls):
+        """Save the research cache to disk."""
+        try:
+            with open(cls._cache_file, "w") as f:
+                json.dump(cls._research_cache, f)
+            
+            logger.info(f"Saved {len(cls._research_cache)} cache entries to {cls._cache_file}")
+        except Exception as e:
+            logger.warning(f"Error saving cache to disk: {e}")
 
     async def run_research(self, question: MetaculusQuestion) -> str:
+        # Load cache if not already loaded
+        if not CustomForecaster._cache_loaded:
+            CustomForecaster._load_cache_from_disk()
+            
         key = question.page_url
-        # Fast path: already cached
+        now = datetime.now()
+        
+        # Fast path: already cached and not expired
         if key in CustomForecaster._research_cache:
-            logger.info(f"Cache hit in CustomForecaster for URL {key}")
-            return CustomForecaster._research_cache[key]
+            cache_entry = CustomForecaster._research_cache[key]
+            entry_date = datetime.fromisoformat(cache_entry["timestamp"])
+            
+            # Check if cache entry is still valid (less than 30 days old)
+            if now - entry_date < CustomForecaster._max_cache_age:
+                logger.info(f"Cache hit in CustomForecaster for URL {key}")
+                return cache_entry["data"]
+            else:
+                logger.info(f"Cache entry for URL {key} has expired (> 30 days old)")
+        
         # Ensure only one concurrent fetch per URL
         lock = CustomForecaster._research_locks.setdefault(key, asyncio.Lock())
         async with lock:
             # Double-check cache inside lock
             if key in CustomForecaster._research_cache:
-                logger.info(f"Cache hit in CustomForecaster for URL {key}; returning cached research.")
-                return CustomForecaster._research_cache[key]
+                cache_entry = CustomForecaster._research_cache[key]
+                entry_date = datetime.fromisoformat(cache_entry["timestamp"])
+                
+                # Check again if still valid
+                if now - entry_date < CustomForecaster._max_cache_age:
+                    logger.info(f"Cache hit in CustomForecaster for URL {key}; returning cached research.")
+                    return cache_entry["data"]
+            
             # Perform actual fetch
             research = await super().run_research(question)
-            CustomForecaster._research_cache[key] = research
+            
+            # Update cache with new data and timestamp
+            CustomForecaster._research_cache[key] = {
+                "data": research,
+                "timestamp": now.isoformat()
+            }
+            
+            # Save updated cache to disk
+            CustomForecaster._save_cache_to_disk()
+            
             return research
 
     def __init__(self, *args, forecaster_description: str= "", forecaster_name: str= "", **kwargs):
