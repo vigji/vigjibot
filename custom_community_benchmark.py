@@ -30,7 +30,7 @@ async def benchmark_forecast_bot(mode: str) -> None:
     Run a benchmark that compares your forecasts against the community prediction
     """
 
-    number_of_questions = 3   # Recommend 100+ for meaningful error bars, but 30 is faster/cheaper
+    number_of_questions = 100   # Recommend 100+ for meaningful error bars, but 30 is faster/cheaper
     if mode == "display":
         run_benchmark_streamlit_page()
         return
@@ -70,11 +70,12 @@ async def benchmark_forecast_bot(mode: str) -> None:
                 forecaster_description=forecasters_dict[model_name],
                 forecaster_name=model_name,
                 llms={  # choose your model names or GeneralLlm llms here, otherwise defaults will be chosen for you
-                    "default": "openrouter/sophosympatheia/rogue-rose-103b-v0.2:free",# "openrouter/meta-llama/llama-4-maverick:free",
-                    "summarizer": "openrouter/meta-llama/llama-4-maverick:free",
+                    # "summarizer": "openrouter/sophosympatheia/rogue-rose-103b-v0.2:free",# "openrouter/meta-llama/llama-4-maverick:free",
+                    # "default": "openrouter/meta-llama/llama-4-maverick:free",
+                    "default": "openrouter/openai/gpt-4o-mini",
                 },
 
-            ) for model_name in list(forecasters_dict.keys())[:5]
+            ) for model_name in list(forecasters_dict.keys())
 
             # Add other ForecastBots here (or same bot with different parameters)
         ]

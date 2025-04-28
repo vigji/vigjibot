@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Any, Callable, TypeVar, Union
 from utils import load_forecasters_dict
 import asyncio
+import dotenv
 
 from forecasting_tools import (
     MetaculusQuestion,
@@ -23,11 +24,11 @@ T = TypeVar('T', float, PredictedOptionList, NumericDistribution)
 
 forecasters_dict = load_forecasters_dict()
 
-model_name = "18-paranoid-conspiracy-minded-forecaster"
-forecaster_description = forecasters_dict[model_name]
+dotenv.load_dotenv()
+
 class CustomForecaster(TemplateForecaster):
 
-    _max_concurrent_questions = 5  # Set this to whatever works for your search-provider/ai-model rate limits
+    _max_concurrent_questions = 10  # Set this to whatever works for your search-provider/ai-model rate limits
     _concurrency_limiter = asyncio.Semaphore(_max_concurrent_questions)
 
     # Cache research results per question URL across instances
@@ -62,9 +63,10 @@ class CustomForecaster(TemplateForecaster):
     def _build_base_prompt(self, question, research):
         """Creates the common base prompt sections used in all question types."""
 
-        return f"""
-            You are a professional forecaster interviewing for a job.
-
+        if len(self.forecaster_description) == 0:
+            style_prompt = ""
+        else:
+            style_prompt = f"""
             Your forecasting reflects the forecasting style described between '<<<< >>>>':
 
             <<<<
@@ -72,6 +74,12 @@ class CustomForecaster(TemplateForecaster):
             >>>>
 
             Make sure you take into account your forecasting style when producing your answer.
+            """
+            
+        return f"""
+            You are a professional forecaster interviewing for a job.
+
+            {style_prompt}
 
             Your interview question is:
             {question.question_text}
@@ -245,6 +253,45 @@ class CustomForecaster(TemplateForecaster):
         return f"<{self.__class__.__name__} name={self.forecaster_name!r}>"
 
 
+def forecaster_factory(forecaster_name: str) -> type:
+    """
+    Create a CustomForecaster subclass dynamically named after the given forecaster name.
+    
+    Args:
+        forecaster_name: Name of the forecaster to look up in forecasters_dict
+        
+    Returns:
+        A dynamically created CustomForecaster subclass
+        
+    Raises:
+        KeyError: If the forecaster_name is not found in forecasters_dict
+    """
+    # Get description from forecasters_dict
+    description = forecasters_dict.get(forecaster_name)
+    if description is None:
+        raise KeyError(f"Forecaster '{forecaster_name}' not found in forecasters_dict")
+    
+    # Create a valid class name (camelcasing the forecaster name)
+    class_name = "".join(word.capitalize() for word in forecaster_name.split("-")) + "Forecaster"
+    
+    # Define __init__ method for the subclass
+    def custom_init(self, *args, **kwargs):
+        CustomForecaster.__init__(
+            self, 
+            *args,
+            forecaster_name=forecaster_name,
+            forecaster_description=description,
+            **kwargs
+        )
+    
+    # Create the subclass
+    forecaster_class = type(
+        class_name,  # Class name
+        (CustomForecaster,),  # Base class
+        {"__init__": custom_init}  # Class attributes
+    )
+    
+    return forecaster_class
 
 
 if __name__ == "__main__":
@@ -252,6 +299,9 @@ if __name__ == "__main__":
     from typing import Literal
     import asyncio
     from forecasting_tools import MetaculusApi
+
+    model_name = "18-paranoid-conspiracy-minded"
+    forecaster_description = forecasters_dict[model_name]
 
     logging.basicConfig(
         level=logging.INFO,
@@ -283,15 +333,17 @@ if __name__ == "__main__":
         "test_questions",
     ], "Invalid run mode"
 
-    template_bot = CustomForecaster(
+
+
+    template_bot = forecaster_factory(model_name)(
         research_reports_per_question=1,
         predictions_per_research_report=1,
         use_research_summary_to_forecast=False,
         publish_reports_to_metaculus=True,
         folder_to_save_reports_to=None,
         skip_previously_forecasted_questions=True,
-        forecaster_description=forecaster_description,
-        forecaster_name=model_name,
+        # forecaster_description=forecaster_description,
+        #forecaster_name=model_name,
         llms={  # choose your model names or GeneralLlm llms here, otherwise defaults will be chosen for you
             "default": "openrouter/meta-llama/llama-4-maverick:free",
             "summarizer": "openrouter/meta-llama/llama-4-maverick:free",

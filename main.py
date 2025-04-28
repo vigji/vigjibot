@@ -68,6 +68,11 @@ class TemplateForecaster(ForecastBot):
         async with self._concurrency_limiter:
             research = ""
             if os.getenv("ASKNEWS_CLIENT_ID") and os.getenv("ASKNEWS_SECRET"):
+                print("#########################")
+                print("Using AskNews")
+                print("#########################")
+                print(os.getenv("ASKNEWS_CLIENT_ID"))
+                print(os.getenv("ASKNEWS_SECRET"))
                 research = await AskNewsSearcher().get_formatted_news_async(
                     question.question_text
                 )
@@ -78,6 +83,9 @@ class TemplateForecaster(ForecastBot):
             elif os.getenv("PERPLEXITY_API_KEY"):
                 research = await self._call_perplexity(question.question_text)
             elif os.getenv("OPENROUTER_API_KEY"):
+                print("#########################")
+                print("Using OpenRouter")
+                print("#########################")
                 research = await self._call_perplexity(
                     question.question_text, use_open_router=True
                 )
