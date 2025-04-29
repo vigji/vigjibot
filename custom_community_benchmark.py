@@ -85,10 +85,21 @@ async def benchmark_forecast_bot(mode: str) -> None:
                 folder_to_save_reports_to=None,
                 skip_previously_forecasted_questions=False,
                 llms={  # choose your model names or GeneralLlm llms here, otherwise defaults will be chosen for you
-                    "default": "openrouter/" + model,
+                    # "default": "openrouter/" + model,
+                    "default": GeneralLlm(
+                        model="openrouter/" + model,  #"metaculus/anthropic/claude-3-5-sonnet-20241022",  # metaculus/anthropic
+                        temperature=0.3,
+                        timeout=40,
+                        allowed_tries=2,
+                    ),
                 },
 
-            ) for model in ["openai/o4-mini", "openai/gpt-4.1-mini", "openai/gpt-4.1", "anthropic/claude-3.7-sonnet", "anthropic/claude-3.5-haiku:beta"]
+            ) for model in ["openrouter/meta-llama/llama-4-maverick:free",]
+                #"openai/o4-mini", 
+                           # "openai/gpt-4.1-mini", 
+                           # "openai/gpt-4.1", 
+                            #"anthropic/claude-3.7-sonnet", 
+                            #"anthropic/claude-3.5-haiku:beta"]
         ]
         bots = typeguard.check_type(bots, list[ForecastBot])
         benchmarks = await Benchmarker(
