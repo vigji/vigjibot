@@ -58,49 +58,49 @@ async def benchmark_forecast_bot(mode: str) -> None:
         raise ValueError(f"Invalid mode: {mode}")
 
     with MonetaryCostManager() as cost_manager:
-    #     bots = [forecaster_factory(model_name)( 
-    #             research_reports_per_question=1,
-    #             predictions_per_research_report=1,
-    #             use_research_summary_to_forecast=False,
-    #             publish_reports_to_metaculus=False,
-    #             folder_to_save_reports_to=None,
-    #             skip_previously_forecasted_questions=False,
-    #             # forecaster_description=forecasters_dict[model_name],
-    #             # forecaster_name=model_name,
-    #             llms={  # choose your model names or GeneralLlm llms here, otherwise defaults will be chosen for you
-    #                 # "summarizer": "openrouter/sophosympatheia/rogue-rose-103b-v0.2:free",# "openrouter/meta-llama/llama-4-maverick:free",
-    #                 # "default": "openrouter/meta-llama/llama-4-maverick:free",
-    #                 # "default": "openrouter/openai/gpt-4o-mini",
-    #                 "default": "openrouter/openai/gpt-4.1-mini",
-    #             },
-
-    #         ) for model_name in list(forecasters_dict.keys())
-    #     ]
-
-        bots = [forecaster_factory(list(forecasters_dict.keys())[0])( 
+        bots = [forecaster_factory(model_name)( 
                 research_reports_per_question=1,
                 predictions_per_research_report=1,
                 use_research_summary_to_forecast=False,
                 publish_reports_to_metaculus=False,
                 folder_to_save_reports_to=None,
                 skip_previously_forecasted_questions=False,
+                # forecaster_description=forecasters_dict[model_name],
+                # forecaster_name=model_name,
                 llms={  # choose your model names or GeneralLlm llms here, otherwise defaults will be chosen for you
-                    # "default": "openrouter/" + model,
-                    "default": GeneralLlm(
-                        model="openrouter/" + model,  #"metaculus/anthropic/claude-3-5-sonnet-20241022",  # metaculus/anthropic
-                        temperature=0.3,
-                        timeout=40,
-                        allowed_tries=2,
-                    ),
+                    # "summarizer": "openrouter/sophosympatheia/rogue-rose-103b-v0.2:free",# "openrouter/meta-llama/llama-4-maverick:free",
+                    # "default": "openrouter/meta-llama/llama-4-maverick:free",
+                    # "default": "openrouter/openai/gpt-4o-mini",
+                    "default": "openrouter/openai/gpt-4.1-mini",
                 },
 
-            ) for model in ["openrouter/meta-llama/llama-4-maverick:free",]
-                #"openai/o4-mini", 
-                           # "openai/gpt-4.1-mini", 
-                           # "openai/gpt-4.1", 
-                            #"anthropic/claude-3.7-sonnet", 
-                            #"anthropic/claude-3.5-haiku:beta"]
+            ) for model_name in list(forecasters_dict.keys())
         ]
+
+        # bots = [forecaster_factory(list(forecasters_dict.keys())[0])( 
+        #         research_reports_per_question=1,
+        #         predictions_per_research_report=1,
+        #         use_research_summary_to_forecast=False,
+        #         publish_reports_to_metaculus=False,
+        #         folder_to_save_reports_to=None,
+        #         skip_previously_forecasted_questions=False,
+        #         llms={  # choose your model names or GeneralLlm llms here, otherwise defaults will be chosen for you
+        #             # "default": "openrouter/" + model,
+        #             "default": GeneralLlm(
+        #                 model="openrouter/" + model,  #"metaculus/anthropic/claude-3-5-sonnet-20241022",  # metaculus/anthropic
+        #                 temperature=0.3,
+        #                 timeout=40,
+        #                 allowed_tries=2,
+        #             ),
+        #         },
+
+        #     ) for model in ["openrouter/meta-llama/llama-4-maverick:free",]
+        #         #"openai/o4-mini", 
+        #                    # "openai/gpt-4.1-mini", 
+        #                    # "openai/gpt-4.1", 
+        #                     #"anthropic/claude-3.7-sonnet", 
+        #                     #"anthropic/claude-3.5-haiku:beta"]
+        # ]
         bots = typeguard.check_type(bots, list[ForecastBot])
         benchmarks = await Benchmarker(
             questions_to_use=questions,

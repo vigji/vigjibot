@@ -18,7 +18,7 @@ assert data_path.exists()
 
 all_runs = get_json_files(data_path)
 print(len(all_runs))
-print(all_runs[-1])
+(all_runs)
 # %%
 
 for run in all_runs:
@@ -34,6 +34,7 @@ if "all_runs_df.csv" not in os.listdir():
 else:
     all_df = pd.read_csv("all_runs_df.csv", index_col=0)
     all_df.timestamp = pd.to_datetime(all_df.timestamp)
+print(all_df["bot_class"].unique())
 
 df_questions = pd.read_csv("questions_df.csv", index_col=0)
 
@@ -45,7 +46,6 @@ df_models = all_df[(all_df.timestamp >= date_cutoff) & (all_df["bot_class"] == m
 df_models
 
 # Define colors for question clusters
-colors = px.colors.qualitative.Set3[:10] + ["#000000"]  # Using Set3 palette from plotly plus black
 
 # %%
 # %%
@@ -53,6 +53,7 @@ colors = px.colors.qualitative.Set3[:10] + ["#000000"]  # Using Set3 palette fro
 
 # Create a figure with all models
 fig = go.Figure()
+colors = px.colors.qualitative.Set3[:10] + ["#000000"]  # Using Set3 palette from plotly plus black
 
 # Add traces for each model with low alpha
 for model_name in df_models["bot_model"].unique():
@@ -63,9 +64,12 @@ for model_name in df_models["bot_model"].unique():
     for _, row in sel_data.iterrows():
         question_id = row["question_id"]
         other_models = df_models[df_models["question_id"] == question_id]
-        model_predictions = "\n".join([
+        # Sort models by name and create predictions text
+        sorted_models = sorted(zip(other_models["bot_model"], other_models["my_prediction"]), 
+                             key=lambda x: x[0])
+        model_predictions = "<br>".join([
             f"{m}: {p:.2f}" 
-            for m, p in zip(other_models["bot_model"], other_models["my_prediction"])
+            for m, p in sorted_models
         ])
         hover_texts.append(
             f"Question: {row['question_text']}<br>"
@@ -210,4 +214,83 @@ benchmarks  # .forecast_reports#[0].question.question_text
 
 # %%
 benchmark.forecast_reports[0]
+# %%
+ # %%
+date_cutoff = datetime(2025, 4, 26)
+model_name = "00VanillaForecaster"
+# df_models = all_df[(all_df.timestamp >= date_cutoff)]
+
+# %%
+# for each value of run_id, show number of unique combinations of bot_class and question_id
+all_df.groupby("run_id").apply(lambda x: (len(x["bot_class"].unique()),  len(x["question_id"].unique())))#.value_counts()
+# %%
+run_id = "/Users/vigji/code/vigjibot/benchmarks/benchmarks_2025-04-28_12-42-06"
+df_models = all_df[all_df["run_id"] == run_id]
+df_models
+# %%
+fig = go.Figure()
+
+colors = px.colors.qualitative.Set3[:10] + ["#000000"]  # Using Set3 palette from plotly plus black
+
+dropdown_on = "bot_class"
+
+# Let's start from a simple plot. I select a model using the dropdown, and the plots diplaied 
+# are updated by filtering only on that model.
+
+
+# Simple plot with dropdown to select models
+fig_simple = go.Figure()
+dropdown_on = "bot_class"
+
+# Get unique models
+models = df_models[dropdown_on].unique()
+
+# Add traces for each model (initially hidden)
+for model in models:
+    model_data = df_models[df_models[dropdown_on] == model]
+    fig_simple.add_trace(
+        go.Scatter(
+            x=model_data["community_prediction"],
+            y=model_data["my_prediction"],
+            mode="markers",
+            name=model,
+            visible=False  # All traces start hidden
+        )
+    )
+
+# Create dropdown buttons
+buttons = []
+for i, model in enumerate(models):
+    visibility = [False] * len(models)
+    visibility[i] = True
+    buttons.append(
+        dict(
+            label=model,
+            method="update",
+            args=[{"visible": visibility}]
+        )
+    )
+
+# Update layout with dropdown
+fig_simple.update_layout(
+    updatemenus=[
+        dict(
+            buttons=buttons,
+            direction="down",
+            showactive=True,
+            x=0.1,
+            y=1.1,
+        )
+    ],
+    title="Simple Model Predictions vs Community Predictions",
+    xaxis_title="Community Prediction",
+    yaxis_title="Model Prediction",
+    showlegend=True
+)
+
+# Show the first model by default
+fig_simple.data[0].visible = True
+
+fig_simple.show()
+
 # %%

@@ -15,7 +15,11 @@ def get_benchmark_df(benchmark):
         model_name = bot_config_data["original_model"]
     except:
         model_name = bot_config_data  # ["original_model"]
-    model_name = model_name.split("openrouter/")[1]
+
+    if "openrouter/" in model_name:
+        model_name = model_name.split("openrouter/")[1]
+    else:
+        model_name = model_name
 
     full_model_name = (
         benchmark.forecast_bot_class_name + "//" + model_name
@@ -60,15 +64,32 @@ def _parse_benchmark_timestamp(filename):
 
 def get_all_runs_df(all_runs, BenchmarkForBot):
     all_runs_df = pd.DataFrame()
-    for run in tqdm(all_runs):
+    for i, run in tqdm(enumerate(all_runs)):
+        print("loading run: ", run, " (", i, "/", len(all_runs), ")")
         benchmarks = BenchmarkForBot.load_json_from_file_path(run)
 
-        if len(benchmarks) > 1 and len(benchmarks[0].forecast_reports) > 28:
-            timestamp = _parse_benchmark_timestamp(run)
+        # if len(benchmarks) > 1 and len(benchmarks[0].forecast_reports) > 28:
+        timestamp = _parse_benchmark_timestamp(run)
 
-            df = get_all_benchmark_df(benchmarks)
-            df["run_id"] = run.split(".")[-2]
-            df["timestamp"] = timestamp
-            all_runs_df = pd.concat([all_runs_df, df])
+        df = get_all_benchmark_df(benchmarks)
+        df["run_id"] = run.split(".")[-2]
+        df["timestamp"] = timestamp
+        print(df.head())
+        print(df["bot_class"].unique())
+
+        all_runs_df = pd.concat([all_runs_df, df])
+    
+    print(len(all_runs_df["run_id"].unique()))
 
     return all_runs_df
+
+if __name__ == "__main__":
+    from forecasting_tools.forecast_helpers.benchmark_displayer import get_json_files
+    from forecasting_tools.data_models.benchmark_for_bot import BenchmarkForBot
+    from pathlib import Path
+    data_path = Path(__file__).parent.parent / "benchmarks"
+    assert data_path.exists()
+
+    all_runs = get_json_files(data_path)
+    all_runs_df = get_all_runs_df(all_runs, BenchmarkForBot)
+    all_runs_df.to_csv("all_runs_df.csv")
