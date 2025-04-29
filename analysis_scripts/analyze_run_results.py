@@ -21,7 +21,7 @@ print(all_runs[-1])
 
 
 all_benchmarks = []
-#for file in all_runs:
+# for file in all_runs:
 #    benchmarks = BenchmarkForBot.load_json_from_file_path(file)
 #    all_benchmarks.append(benchmarks)
 
@@ -35,8 +35,8 @@ all_benchmarks = []
 for run in all_runs:
     benchmark = BenchmarkForBot.load_json_from_file_path(run)
     print(run, len(benchmark), len(benchmark[0].forecast_reports))
-    #print(benchmark.explicit_name)
-    #vprint(benchmark.forecast_reports[0].prediction)
+    # print(benchmark.explicit_name)
+    # vprint(benchmark.forecast_reports[0].prediction)
 # %%
 sel_file = all_runs[-3]
 benchmarks = BenchmarkForBot.load_json_from_file_path(sel_file)
@@ -52,62 +52,6 @@ dict(benchmark)
 
 # %%
 
-def get_benchmark_df(benchmark):
-    bot_config_data = benchmark.forecast_bot_config["llms"]["default"]
-    # rint(bot_config_data)
-
-    try:
-        model_name = bot_config_data["original_model"]
-    except:
-        model_name = bot_config_data#["original_model"]
-    model_name = model_name.split("openrouter/")[1]
-
-    full_model_name = benchmark.forecast_bot_class_name + "//" + model_name  # (benchmark.forecast_bot_config["llms"]["default"]
-    community_predictions = [rep.community_prediction for rep in benchmark.forecast_reports]
-    my_predictions = [rep.prediction for rep in benchmark.forecast_reports]
-    num_forecasters = [rep.question.num_forecasters for rep in benchmark.forecast_reports]
-    question_ids = [rep.question.id_of_question for rep in benchmark.forecast_reports]
-    question_texts = [rep.question.question_text for rep in benchmark.forecast_reports]
-
-    model_df = pd.DataFrame({
-        "community_prediction": community_predictions,
-        "my_prediction": my_predictions,
-        "num_forecasters": num_forecasters,
-        "question_id": question_ids,
-        "question_text": question_texts,
-        "bot_class": benchmark.forecast_bot_class_name,
-        "bot_model": model_name, # benchmark.forecast_bot_config["llms"]["default"]["original_model"].split("openrouter/")[1],
-        "full_model_name": full_model_name
-        })
-    return model_df
-
-
-def get_all_benchmark_df(benchmarks):
-    all_benchmark_df = pd.concat([get_benchmark_df(benchmark) for benchmark in benchmarks])
-    return all_benchmark_df
-
-def _parse_benchmark_timestamp(filename):
-    """Parse timestamp from benchmark filename."""
-    timestamp_str = "_".join(filename.split("_")[1:]).split(".")[0]
-    return datetime.strptime(timestamp_str, "%Y-%m-%d_%H-%M-%S")
-
-
-def get_all_runs_df(all_runs):
-    all_runs_df = pd.DataFrame()
-    for run in tqdm(all_runs):
-        benchmarks = BenchmarkForBot.load_json_from_file_path(run)
-
-        if len(benchmarks) > 1 and len(benchmarks[0].forecast_reports) > 28:
-            
-            timestamp = _parse_benchmark_timestamp(run)
-
-            df = get_all_benchmark_df(benchmarks)
-            df["run_id"] = run.split(".")[-2]
-            df["timestamp"] = timestamp
-            all_runs_df = pd.concat([all_runs_df, df])
-    
-    return all_runs_df
-
 all_df = get_all_runs_df(all_runs)
 # %%
 date_cutoff = datetime(2025, 4, 28)
@@ -117,15 +61,26 @@ df = all_df[(all_df.timestamp >= date_cutoff) & (all_df["bot_class"] == model_na
 
 # %%
 # use seaborn to scatter plot the community prediction vs my prediction for each "full_model_name", in separate subplots
-fig, axs = plt.subplots(nrows=len(df["full_model_name"].unique()), ncols=1, figsize=(10, 10), sharex=True, sharey=True)
+fig, axs = plt.subplots(
+    nrows=len(df["full_model_name"].unique()),
+    ncols=1,
+    figsize=(10, 10),
+    sharex=True,
+    sharey=True,
+)
 for i, full_model_name in enumerate(df["full_model_name"].unique()):
     sel_data = df[df["full_model_name"] == full_model_name]
     axs[i].scatter(sel_data["community_prediction"], sel_data["my_prediction"], s=5)
     # axs[i].set_title(full_model_name)
     p = 0.1
     lab = "\n".join(full_model_name.split("//"))
-    axs[i].set(aspect="equal", ylabel=lab, xlabel="Community Prediction", 
-               ylim=(0-p, 1+p), xlim=(0-p, 1+p))
+    axs[i].set(
+        aspect="equal",
+        ylabel=lab,
+        xlabel="Community Prediction",
+        ylim=(0 - p, 1 + p),
+        xlim=(0 - p, 1 + p),
+    )
     axs[i].xaxis.label.set_size(8)
     axs[i].yaxis.label.set_size(8)
 plt.tight_layout()
@@ -135,13 +90,19 @@ plt.show()
 len(df)
 
 # %%
-#check how many answers for each question id for each full_model_name
-duplicated_answers = df.groupby(["question_id", "full_model_name"]).size().reset_index(name="count")
+# check how many answers for each question id for each full_model_name
+duplicated_answers = (
+    df.groupby(["question_id", "full_model_name"]).size().reset_index(name="count")
+)
 duplicated_answers = duplicated_answers[duplicated_answers["count"] > 1]
 len(duplicated_answers)
 # %%
 # Check max delta between repeated answers
-max_delta = df.groupby(["question_id", "full_model_name"]).apply(lambda x: x["my_prediction"].max() - x["my_prediction"].min()).reset_index(name="max_delta")
+max_delta = (
+    df.groupby(["question_id", "full_model_name"])
+    .apply(lambda x: x["my_prediction"].max() - x["my_prediction"].min())
+    .reset_index(name="max_delta")
+)
 max_delta = max_delta[max_delta["max_delta"] > 0.1]
 # %%
 # Make a new df where duplicated answers are removed by picking the latest answer
@@ -149,7 +110,9 @@ no_dup_df = df.drop_duplicates(subset=["question_id", "full_model_name"], keep="
 len(no_dup_df)
 
 # Keep only question ids for which all full_model_names have one answer
-no_dup_df = no_dup_df.groupby("question_id").filter(lambda x: len(x) == len(no_dup_df["full_model_name"].unique()))
+no_dup_df = no_dup_df.groupby("question_id").filter(
+    lambda x: len(x) == len(no_dup_df["full_model_name"].unique())
+)
 len(no_dup_df)
 
 n_models = len(no_dup_df["full_model_name"].unique())
@@ -157,7 +120,9 @@ n_questions = len(no_dup_df["question_id"].unique())
 # %%
 # get average prediction pooling models
 avg_pred = no_dup_df.groupby(["question_id"])["my_prediction"].mean().reset_index()
-comm_avg_pred = no_dup_df.groupby(["question_id"])["community_prediction"].mean().reset_index()
+comm_avg_pred = (
+    no_dup_df.groupby(["question_id"])["community_prediction"].mean().reset_index()
+)
 len(avg_pred), len(comm_avg_pred)
 # %%
 # Make a scatter plot of the average prediction vs the community prediction
@@ -168,7 +133,7 @@ plt.show()
 # %%
 no_dup_df["question_text"].iloc[0]
 # %%
-benchmarks  #.forecast_reports#[0].question.question_text
+benchmarks  # .forecast_reports#[0].question.question_text
 
 # %%
 benchmark.forecast_reports[0]

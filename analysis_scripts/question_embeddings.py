@@ -11,7 +11,7 @@ openai = OpenAI(
     base_url="https://api.deepinfra.com/v1/openai",
 )
 
-input = "The food was delicious and the waiter...", # or an array ["hello", "world"]
+input = ("The food was delicious and the waiter...",)  # or an array ["hello", "world"]
 
 
 # %%
@@ -19,9 +19,7 @@ input = "The food was delicious and the waiter...", # or an array ["hello", "wor
 # %%
 
 embeddings = openai.embeddings.create(
-  model="BAAI/bge-m3",
-  input=input,
-  encoding_format="float"
+    model="BAAI/bge-m3", input=input, encoding_format="float"
 )
 
 if isinstance(input, str):
