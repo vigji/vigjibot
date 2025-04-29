@@ -4,87 +4,160 @@
 from pathlib import Path
 import pandas as pd
 from matplotlib import pyplot as plt
-import seaborn as sns
 from datetime import datetime
-from tqdm import tqdm
+import plotly.express as px
+import plotly.graph_objects as go
 
 from pathlib import Path
 from forecasting_tools.forecast_helpers.benchmark_displayer import get_json_files
 from forecasting_tools.data_models.benchmark_for_bot import BenchmarkForBot
-
-data_path = Path("./benchmarks")
+from traitlets import default
+from analysis_utils import get_all_runs_df
+data_path = Path(__file__).parent.parent / "benchmarks"
 assert data_path.exists()
 
 all_runs = get_json_files(data_path)
 print(len(all_runs))
 print(all_runs[-1])
-
-
-all_benchmarks = []
-# for file in all_runs:
-#    benchmarks = BenchmarkForBot.load_json_from_file_path(file)
-#    all_benchmarks.append(benchmarks)
-
-# print(len(all_benchmarks))
-
-# for benchmark in all_benchmarks:
-#     print(benchmark.explicit_name)
-#     print(benchmark.forecast_reports[0].prediction)
 # %%
 
 for run in all_runs:
-    benchmark = BenchmarkForBot.load_json_from_file_path(run)
-    print(run, len(benchmark), len(benchmark[0].forecast_reports))
+    pass
+    #benchmark = BenchmarkForBot.load_json_from_file_path(run)
+    # print(run, len(benchmark), len(benchmark[0].forecast_reports))
     # print(benchmark.explicit_name)
     # vprint(benchmark.forecast_reports[0].prediction)
-# %%
-sel_file = all_runs[-3]
-benchmarks = BenchmarkForBot.load_json_from_file_path(sel_file)
-# %%
-benchmark = benchmarks[0]
-print(run, len(benchmarks), len(benchmark.forecast_reports))
-benchmark_id = sel_file.split(".")[-2]
-benchmark_id
-# %%
-dict(benchmark)
-# %%
 
+if "all_runs_df.csv" not in os.listdir():
+    all_df = get_all_runs_df(all_runs, BenchmarkForBot)
+    all_df.to_csv("all_runs_df.csv")
+else:
+    all_df = pd.read_csv("all_runs_df.csv", index_col=0)
+    all_df.timestamp = pd.to_datetime(all_df.timestamp)
 
-# %%
+df_questions = pd.read_csv("questions_df.csv", index_col=0)
 
-all_df = get_all_runs_df(all_runs)
+all_df["question_cluster"] = all_df["question_id"].map(df_questions.set_index("question_id")["cluster"]).fillna(value=-1).astype(int).astype(str)
 # %%
 date_cutoff = datetime(2025, 4, 28)
 model_name = "00VanillaForecaster"
-df = all_df[(all_df.timestamp >= date_cutoff) & (all_df["bot_class"] == model_name)]
+df_models = all_df[(all_df.timestamp >= date_cutoff) & (all_df["bot_class"] == model_name)]
+df_models
 
+# Define colors for question clusters
+colors = px.colors.qualitative.Set3[:10] + ["#000000"]  # Using Set3 palette from plotly plus black
 
 # %%
-# use seaborn to scatter plot the community prediction vs my prediction for each "full_model_name", in separate subplots
-fig, axs = plt.subplots(
-    nrows=len(df["full_model_name"].unique()),
-    ncols=1,
-    figsize=(10, 10),
-    sharex=True,
-    sharey=True,
-)
-for i, full_model_name in enumerate(df["full_model_name"].unique()):
-    sel_data = df[df["full_model_name"] == full_model_name]
-    axs[i].scatter(sel_data["community_prediction"], sel_data["my_prediction"], s=5)
-    # axs[i].set_title(full_model_name)
-    p = 0.1
-    lab = "\n".join(full_model_name.split("//"))
-    axs[i].set(
-        aspect="equal",
-        ylabel=lab,
-        xlabel="Community Prediction",
-        ylim=(0 - p, 1 + p),
-        xlim=(0 - p, 1 + p),
+# %%
+# use plotly to create an interactive scatter plot with all models
+
+# Create a figure with all models
+fig = go.Figure()
+
+# Add traces for each model with low alpha
+for model_name in df_models["bot_model"].unique():
+    sel_data = df_models[df_models["bot_model"] == model_name]
+    
+    # Create hover text with all model predictions for each question
+    hover_texts = []
+    for _, row in sel_data.iterrows():
+        question_id = row["question_id"]
+        other_models = df_models[df_models["question_id"] == question_id]
+        model_predictions = "\n".join([
+            f"{m}: {p:.2f}" 
+            for m, p in zip(other_models["bot_model"], other_models["my_prediction"])
+        ])
+        hover_texts.append(
+            f"Question: {row['question_text']}<br>"
+            f"Community: {row['community_prediction']:.2f}<br>"
+            f"Cluster: {row['question_cluster']}<br>"
+            f"All model predictions:<br>{model_predictions}"
+        )
+    
+    cols = [colors[int(cluster)] for cluster in sel_data["question_cluster"]]
+    fig.add_trace(
+        go.Scatter(
+            x=sel_data["community_prediction"],
+            y=sel_data["my_prediction"],
+            mode="markers",
+            name=model_name,
+            text=hover_texts,
+            hoverinfo="text",
+            marker=dict(
+                size=8,
+                opacity=0.3,
+                color=cols,
+                line=dict(  # Default no border
+                    width=0,
+                    color='black'
+                )
+            ),
+            visible=True
+        )
     )
-    axs[i].xaxis.label.set_size(8)
-    axs[i].yaxis.label.set_size(8)
-plt.tight_layout()
-plt.show()
+
+# Create buttons for the dropdown
+buttons = []
+for i, model_name in enumerate(df_models["bot_model"].unique()):
+    # Create a list of marker opacity values for all traces
+    opacities = [0.3] * len(df_models["bot_model"].unique())
+    opacities[i] = 1.0  # Set selected model to full opacity
+    
+    # Create lists for line widths (0 for unselected, 1 for selected)
+    line_widths = [0] * len(df_models["bot_model"].unique())
+    line_widths[i] = 1
+    
+    buttons.append(
+        dict(
+            label=model_name,
+            method="update",
+            args=[{
+                "visible": [True] * len(df_models["bot_model"].unique()),
+                "marker.opacity": opacities,
+                "marker.size": [8 if j != i else 10 for j in range(len(df_models["bot_model"].unique()))],
+                "marker.line.width": line_widths  # Update line widths
+            }]
+        )
+    )
+
+# Add dropdown
+fig.update_layout(
+    updatemenus=[
+        dict(
+            buttons=buttons,
+            direction="down",
+            showactive=True,
+            x=0.1,
+            y=1.1,
+        )
+    ],
+    title="Model Predictions vs Community Predictions",
+    xaxis_title="Community Prediction",
+    yaxis_title="Model Prediction",
+    showlegend=True,
+    height=800,
+    width=1200,  # Wider figure
+    xaxis=dict(
+        scaleanchor="y",  # This ensures the x-axis is scaled to match the y-axis
+        scaleratio=1,     # This ensures a 1:1 aspect ratio
+        range=[-0.1, 1.1],  # Fixed range to ensure consistent view
+        constrain="domain"  # This ensures the aspect ratio is maintained
+    ),
+    yaxis=dict(
+        range=[-0.1, 1.1],  # Fixed range to ensure consistent view
+        constrain="domain"  # This ensures the aspect ratio is maintained
+    ),
+    margin=dict(l=50, r=50, t=100, b=50)  # Add some margin for better visibility
+)
+
+# Add diagonal line
+fig.add_shape(
+    type="line",
+    x0=0, y0=0, x1=1, y1=1,
+    line=dict(color="gray", dash="dash")
+)
+
+fig.show()
 # %%
 
 len(df)

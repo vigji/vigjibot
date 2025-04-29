@@ -1,7 +1,10 @@
 import pandas as pd
 from datetime import datetime
 from tqdm import tqdm
-from forecasting_tools.data_models.benchmark import BenchmarkForBot
+
+
+# from forecasting_tools.forecast_helpers.benchmark_displayer import get_json_files
+# from forecasting_tools.data_models.benchmark import BenchmarkForBot
 
 
 def get_benchmark_df(benchmark):
@@ -55,7 +58,7 @@ def _parse_benchmark_timestamp(filename):
     return datetime.strptime(timestamp_str, "%Y-%m-%d_%H-%M-%S")
 
 
-def get_all_runs_df(all_runs):
+def get_all_runs_df(all_runs, BenchmarkForBot):
     all_runs_df = pd.DataFrame()
     for run in tqdm(all_runs):
         benchmarks = BenchmarkForBot.load_json_from_file_path(run)
