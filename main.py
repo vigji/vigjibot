@@ -177,7 +177,7 @@ class TemplateForecaster(ForecastBot):
 
             You write your rationale remembering that good forecasters put extra weight on the status quo outcome since the world changes slowly most of the time.
 
-            The last thing you write is your final answer as: "Probability: ZZ%", 0-100
+            The last thing you write is your final answer as: "Probability: ZZ%", 0-100, indicating the probability of a Yes outcome.
             """
         )
         logger.info(
@@ -232,6 +232,8 @@ class TemplateForecaster(ForecastBot):
             Option_B: Probability_B
             ...
             Option_N: Probability_N
+
+            Write every probability value only once not to confuse the parser, and do not include any other text after the probabilities in your answer.
             """
         )
         logger.info(
@@ -304,6 +306,8 @@ class TemplateForecaster(ForecastBot):
             Percentile 80: XX
             Percentile 90: XX
             "
+
+            Write every percentile value only once not to confuse the parser, and do not include any other text after the percentiles in your answer.
             """
         )
         logger.info(
