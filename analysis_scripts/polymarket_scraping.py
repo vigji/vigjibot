@@ -4,8 +4,11 @@ import dotenv
 from pathlib import Path
 from py_clob_client.client import ClobClient
 from py_clob_client.constants import POLYGON
+from regex import D
 import requests
+from tqdm import tqdm
 from pprint import pprint
+import pandas as pd
 
 # %%
 
@@ -35,41 +38,45 @@ from py_clob_client.constants import POLYGON
 # %% 
 # %%
 # Fetch open markets
-open_markets = client.get_markets() # status="open", limit=100)
-open_markets
-# %%
-# Display market information
-for market in open_markets:
-    print(f"Market ID: {market['id']}, Question: {market['question']}")
+markets = client.get_markets()
+all_markets = markets['data']
+
+max_pages = 100
+page = 0
+for _ in tqdm(range(max_pages)):
+    if not markets.get('next_cursor') or markets.get('next_cursor') == "LTE=":
+        print(f"No more pages to fetch")
+        break
+    page += 1
+    if page > max_pages:
+        print(f"Reached max pages: {max_pages}")
+        break
+    next_cursor = markets['next_cursor']
+    print(f"Fetching page {page} with cursor {next_cursor}")
+    markets = client.get_markets(next_cursor=next_cursor)
+    all_markets.extend(markets['data'])
 
 # %%
-type(open_markets)
+all_markets
+
 # %%
-GET_MARKETS = "/markets"
-GET_MARKET = "/markets/"
-GET = "GET"
-next_cursor="MA=="
+df = pd.DataFrame(all_markets)
 
-def request(endpoint: str, method: str, headers=None, data=None):
-    try:
-        headers = overloadHeaders(method, headers)
-        resp = requests.request(
-            method=method, url=endpoint, headers=headers, json=data if data else None
-        )
-        if resp.status_code != 200:
-            raise PolyApiException(resp)
+# %%
+df.columns
+# %%
+sel_q = df.loc[0, :]
+# %%
+sel_q
+# %%
+sel_q['question']
+# %%
+print(sel_q['description'])
+# %%
+len(df)
+# %%
+active_df = df[df["active"] & ~df["closed"]].reset_index(drop=True)
 
-        try:
-            return resp.json()
-        except requests.JSONDecodeError:
-            return resp.text
-
-    except requests.RequestException:
-        raise PolyApiException(error_msg="Request exception!")
-
-
-def get(endpoint, headers=None, data=None):
-    return request(endpoint, GET, headers, data)
-
-get("{}{}?next_cursor={}".format(client.host, GET_MARKETS, next_cursor))
+sel_q = active_df.loc[0, :]
+sel_q
 # %%
