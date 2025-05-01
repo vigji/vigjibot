@@ -56,27 +56,25 @@ for _ in tqdm(range(max_pages)):
     markets = client.get_markets(next_cursor=next_cursor)
     all_markets.extend(markets['data'])
 
-# %%
-all_markets
-
-# %%
 df = pd.DataFrame(all_markets)
-
-# %%
-df.columns
-# %%
-sel_q = df.loc[0, :]
-# %%
-sel_q
-# %%
-sel_q['question']
-# %%
-print(sel_q['description'])
-# %%
-len(df)
-# %%
 active_df = df[df["active"] & ~df["closed"]].reset_index(drop=True)
 
+# %%
 sel_q = active_df.loc[0, :]
 sel_q
+# %%
+df["rewards"]
+# %%
+sel_q["tokens"]
+# %%
+q_id = 1746093315664
+
+# %%
+sel_q["question_id"]
+# %%
+df["question_id"]
+# %%# %%
+sel_q = active_df[active_df["market_slug"] == "us-recession-in-2025"]
+# %%
+sel_q.to_dict()
 # %%
