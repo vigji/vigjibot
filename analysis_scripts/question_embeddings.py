@@ -57,25 +57,7 @@ input_questions = question_df["question_text"].tolist()
 len(question_df)
 # %%
 
-model = "BAAI/bge-m3"
 
-cache_file = f"embeddings_cache_{model.replace('/', '.')}.csv"
-if (Path(__file__).parent / cache_file).exists():
-    embeddings_df = pd.read_csv(cache_file, index_col=0)
-    embeddings_array = embeddings_df.to_numpy()
-    
-else:
-    embeddings = openai.embeddings.create(
-        model=model, input=input_questions, encoding_format="float"
-    )
-
-
-    embeddings_array = np.array([embedding.embedding for embedding in embeddings.data])
-    embeddings_array.shape
-
-    embeddings_df = pd.DataFrame(embeddings_array, index=question_df["question_id"])
-    embeddings_df.to_csv(cache_file)
-print(embeddings_array.shape)
 
 # %%
 # compute cosine distances as 1 - cosine similarity

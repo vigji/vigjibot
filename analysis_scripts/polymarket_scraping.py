@@ -54,7 +54,7 @@ for _ in tqdm(range(max_pages)):
         print(f"Reached max pages: {max_pages}")
         break
     next_cursor = markets['next_cursor']
-    print(f"Fetching page {page} with cursor {next_cursor}")
+    # print(f"Fetching page {page} with cursor {next_cursor}")
     markets = client.get_markets(next_cursor=next_cursor)
     all_markets.extend(markets['data'])
 
@@ -63,9 +63,7 @@ active_df = df[df["active"] & ~df["closed"]].reset_index(drop=True)
 active_df["num_tokens"] = active_df.apply(lambda x: len(x["tokens"]), axis=1)
 print(active_df["num_tokens"].value_counts())
 
-# %%
-active_df["question"].to_list()  #["question_text"] = active_df["question"].apply(lambda x: x["text"])
-# %%
+
 # %%
 model = "BAAI/bge-m3"
 
@@ -91,7 +89,7 @@ sanitized_questions = [q.strip() for q in questions_list]
 #         )
 #         all_embeddings.append(embeddings.data[0].embedding)
 cache_file = f"embeddings_polymarket_cache_{model.replace('/', '.')}.csv"
-chunk_size = 100
+chunk_size = 200
 if (Path(__file__).parent / cache_file).exists():
     embeddings_df = pd.read_csv(cache_file, index_col=0)
     embeddings_array = embeddings_df.to_numpy()
@@ -113,8 +111,8 @@ embeddings_df.to_csv(cache_file)
 print(embeddings_array.shape)
 
 # %%
-meta_questions_df = pd.read_csv("questions_df.csv")
+meta_questions_df = pd.read_csv("questions_df.csv", index_col=0)
 # %%
-meta_questions_df[0]
+meta_questions_df
 
 # %%
