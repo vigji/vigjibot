@@ -171,3 +171,6 @@ cython_debug/
 
 # Research cache
 .research_cache.json
+
+*.csv
+*.npy
