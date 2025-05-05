@@ -4,7 +4,7 @@
 import os
 import dotenv
 from pathlib import Path
-from py_clob_client.client import ClobClient
+from py_clob_client.client import ClobClient, TradeParams
 from py_clob_client.constants import POLYGON
 from regex import D
 import requests
@@ -86,35 +86,6 @@ def get_markets_with_cache(client, max_pages=200, return_active=True, cache_dura
     
     return fetch_all_markets(client, max_pages, return_active, cache_key)
 
-def get_market_trades(client, market_id, max_pages=200):
-    """
-    Fetch all trades for a specific market from Polymarket CLOB API.
-    
-    Args:
-        client: ClobClient instance
-        market_id: The ID of the market to fetch trades for
-        max_pages: Maximum number of pages to fetch
-        
-    Returns:
-        DataFrame containing all trades for the market
-    """
-    trades = client.get_trades(market_id=market_id)
-    all_trades = trades['data']
-    
-    page = 0
-    for _ in tqdm(range(max_pages)):
-        if not trades.get('next_cursor') or trades.get('next_cursor') == "LTE=":
-            print(f"No more pages to fetch")
-            break
-        page += 1
-        if page > max_pages:
-            print(f"Reached max pages: {max_pages}")
-            break
-        next_cursor = trades['next_cursor']
-        trades = client.get_trades(market_id=market_id, next_cursor=next_cursor)
-        all_trades.extend(trades['data'])
-    
-    return pd.DataFrame(all_trades)
 
 # %%
 # Initialize client and fetch markets
@@ -132,7 +103,49 @@ for i in range(100):
 # %%
 markets
 # %%
-
+example_market_id = active_df.iloc[0, :]["question_id"]
+def get_market_trades(client, trade_params, max_pages=200):
+    """
+    Fetch all trades for a specific market from Polymarket CLOB API.
+    
+    Args:
+        client: ClobClient instance
+        market_id: The ID of the market to fetch trades for
+        max_pages: Maximum number of pages to fetch
+        
+    Returns:
+        DataFrame containing all trades for the market
+    """
+    trades = client.get_trades(trade_params)
+    all_trades = trades['data']
+    
+    page = 0
+    for _ in tqdm(range(max_pages)):
+        if not trades.get('next_cursor') or trades.get('next_cursor') == "LTE=":
+            print(f"No more pages to fetch")
+            break
+        page += 1
+        if page > max_pages:
+            print(f"Reached max pages: {max_pages}")
+            break
+        next_cursor = trades['next_cursor']
+        trades = client.get_trades(trade_params, next_cursor=next_cursor)
+        all_trades.extend(trades['data'])
+    
+    return pd.DataFrame(all_trades)
 # Get trades for a specific market
-trades_df = get_market_trades(client, "your_market_id")
+# @dataclass
+# class TradeParams:
+#     id: str = None
+#     maker_address: str = None
+#     market: str = None
+#     asset_id: str = None
+#     before: int = None
+#     after: int = None
+
+trade_params = TradeParams(market=example_market_id)
+trades_df = get_market_trades(client, trade_params)
 print(f"Number of trades: {len(trades_df)}")
+# %%
+trades_df.columns
+# %%
