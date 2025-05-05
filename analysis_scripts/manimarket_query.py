@@ -118,7 +118,7 @@ class MultiChoiceMarket(Market):
 
 
 class ManifoldMarket:
-    def __init__(self, max_concurrent: int = 10):
+    def __init__(self, max_concurrent: int = 5):
         self.max_concurrent = max_concurrent
         self.session: Optional[aiohttp.ClientSession] = None
 
@@ -147,10 +147,9 @@ class ManifoldMarket:
         """Fetch open markets from API."""
         base_url = "https://api.manifold.markets/v0/markets"
         params = {
-            "limit": limit,  # Remove min() to see if we can get more
+            "limit": limit,
             "sort": "created-time",
-            "order": "desc",
-            "before": None  # We'll use this for pagination
+            "order": "desc"
         }
         
         all_markets = []
@@ -288,10 +287,10 @@ class ManifoldMarket:
 
 
 async def main():
-    try:
+   #  try:
         async with ManifoldMarket(max_concurrent=10) as client:
             markets = await client.get_filtered_markets(
-                min_unique_bettors=40,
+                min_unique_bettors=100,
                 min_volume=500
             )
             print(f"Found {len(markets)} markets matching criteria")
@@ -299,8 +298,8 @@ async def main():
             for market in markets[:1]:  # Print details for first 5 markets
                 ManifoldMarket.print_market_details(market)
                 
-    except Exception as e:
-        print(f"Error in main: {e}")
+    # except Exception as e:
+    #     print(f"Error in main: {e}")
 
 
 if __name__ == "__main__":
