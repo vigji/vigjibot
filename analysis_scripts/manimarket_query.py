@@ -147,19 +147,39 @@ class ManifoldMarket:
         """Fetch open markets from API."""
         base_url = "https://api.manifold.markets/v0/markets"
         params = {
-            "limit": min(limit, 1000),
+            "limit": limit,  # Remove min() to see if we can get more
             "sort": "created-time",
-            "order": "desc"
+            "order": "desc",
+            "before": None  # We'll use this for pagination
         }
         
+        all_markets = []
         try:
-            async with self.session.get(base_url, params=params) as response:
-                response.raise_for_status()
-                markets = await response.json()
-                return [m for m in markets if not m.get("isResolved", False)]
+            while True:
+                async with self.session.get(base_url, params=params) as response:
+                    response.raise_for_status()
+                    markets = await response.json()
+                    if not markets:
+                        break
+                        
+                    # Filter out resolved markets
+                    open_markets = [m for m in markets if not m.get("isResolved", False)]
+                    all_markets.extend(open_markets)
+                    
+                    print(f"Fetched {len(open_markets)} open markets in this batch")
+                    print(f"Total markets so far: {len(all_markets)}")
+                    
+                    # Get the ID of the last market for pagination
+                    if len(markets) < limit:
+                        break
+                    params["before"] = markets[-1]["id"]
+                    
         except aiohttp.ClientError as e:
             print(f"Error fetching open markets: {e}")
             return []
+            
+        print(f"Total open markets found: {len(all_markets)}")
+        return all_markets
 
     async def _get_market_details(self, market_id: str) -> Optional[Dict[str, Any]]:
         """Fetch details for a specific market."""
@@ -192,17 +212,44 @@ class ManifoldMarket:
         limit: int = 1000
     ) -> List[Union[BinaryMarket, MultiChoiceMarket]]:
         """Get filtered markets that meet the criteria."""
+        # First get all open markets
         raw_markets = await self._get_open_markets(limit)
+        print(f"Total open markets fetched: {len(raw_markets)}")
         if not raw_markets:
             return []
             
+        # Filter markets based on basic criteria
+        filtered_markets = [
+            m for m in raw_markets
+            if m.get("uniqueBettorCount", 0) >= min_unique_bettors
+            and m.get("volume", 0) >= min_volume
+            and m.get("outcomeType") in ["BINARY", "MULTIPLE_CHOICE"]
+        ]
+        print(f"Markets after basic filtering: {len(filtered_markets)}")
+        
+        # Then fetch full details for filtered markets
         markets = []
-        for i in range(0, len(raw_markets), self.max_concurrent):
-            batch = raw_markets[i:i + self.max_concurrent]
-            tasks = [self._process_market(market_data, min_unique_bettors, min_volume) for market_data in batch]
+        for i in range(0, len(filtered_markets), self.max_concurrent):
+            batch = filtered_markets[i:i + self.max_concurrent]
+            print(f"Processing batch {i//self.max_concurrent + 1} of {(len(filtered_markets) + self.max_concurrent - 1)//self.max_concurrent}")
+            tasks = [self._get_market_details(market_data["id"]) for market_data in batch]
             results = await asyncio.gather(*tasks)
-            markets.extend([m for m in results if m is not None])
             
+            for market_data, full_data in zip(batch, results):
+                if not full_data:
+                    print(f"Failed to fetch details for market {market_data['id']}")
+                    continue
+                try:
+                    market = self._create_market(full_data)
+                    if market:
+                        markets.append(market)
+                    else:
+                        print(f"Failed to create market object for {market_data['id']}")
+                except Exception as e:
+                    print(f"Error processing market {market_data['id']}: {e}")
+                    continue
+            
+        print(f"Final number of processed markets: {len(markets)}")
         return markets
 
     @staticmethod
@@ -249,7 +296,7 @@ async def main():
             )
             print(f"Found {len(markets)} markets matching criteria")
             
-            for market in markets[:5]:  # Print details for first 5 markets
+            for market in markets[:1]:  # Print details for first 5 markets
                 ManifoldMarket.print_market_details(market)
                 
     except Exception as e:
