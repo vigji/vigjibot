@@ -147,5 +147,25 @@ trade_params = TradeParams(market=example_market_id)
 trades_df = get_market_trades(client, trade_params)
 print(f"Number of trades: {len(trades_df)}")
 # %%
-trades_df.columns
+import requests
+
+# Replace with the actual token ID for the outcome
+token_id = active_df.iloc[i, :]["tokens"][0]["token_id"]
+ # "0x123456789abcdef..."  # Example token ID
+
+# Construct the API URL
+url = f"https://clob.polymarket.com/book?token_id={token_id}"
+
+# Make the GET request
+response = requests.get(url)
+
+# Check if the request was successful
+if response.status_code == 200:
+    order_book = response.json()
+    print("Order Book Data:", order_book)
+else:
+    print(f"Failed to fetch data. Status code: {response.status_code}")
+
+# %%
+active_df.iloc[i, :]["tokens"][0]["token_id"]
 # %%
