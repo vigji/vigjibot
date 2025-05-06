@@ -5,10 +5,62 @@ from pathlib import Path
 import json
 import re
 from urllib.parse import urljoin
+from dataclasses import dataclass, field
+from typing import List, Optional, Any
 
 BASE_URL = "https://www.gjopen.com"
 QUESTIONS_URL = f"{BASE_URL}/questions"
 LOGIN_URL = f"{BASE_URL}/users/sign_in"
+
+@dataclass
+class Answer:
+    name: str
+    probability: Optional[float] = None
+    # id: Optional[int] = None # Uncomment if you plan to use it
+
+@dataclass
+class Market:
+    id: int
+    name: str
+    published_at: str
+    predictors_count: int
+    comments_count: int
+    description: str
+    binary: bool
+    continuous_scored: bool
+    answers: List[Answer]
+    url: str
+    q_type: str
+
+    @classmethod
+    def from_gjopen_question_data(cls, q_props: dict, question_url: str, all_props: dict) -> Optional["Market"]:
+        if not q_props:
+            return None
+
+        answers_data = q_props.get("answers", [])
+        answers = [
+            Answer(
+                name=a.get("name"),
+                probability=a.get("probability"),
+                # id=a.get("id")
+            )
+            for a in answers_data
+        ]
+
+        return cls(
+            id=q_props.get("id"),
+            name=q_props.get("name", ""),
+            published_at=q_props.get("published_at"),
+            predictors_count=q_props.get("predictors_count"),
+            comments_count=q_props.get("comments_count"),
+            description=q_props.get("description", ""),
+            binary=q_props.get("binary?"),
+            continuous_scored=q_props.get("continuous_scored?"),
+            answers=answers,
+            url=question_url,
+            q_type=q_props.get("type")
+        )
+
 
 class GJOpenScraper:
     def __init__(self, email, password):
@@ -45,61 +97,34 @@ class GJOpenScraper:
         # build full URLs
         return [urljoin(BASE_URL, link["href"]) for link in links]
 
-    def fetch_prediction_data(self, question_url):
-        # get page and parse for metadata
+    def fetch_prediction_data(self, question_url: str) -> Optional[Market]:
         resp = self.session.get(question_url)
         soup = BeautifulSoup(resp.text, "html.parser")
-        # metadata from React props if available
         react_div = soup.find(
             "div", {"data-react-class": "FOF.Forecast.PredictionInterfaces.OpinionPoolInterface"}
         )
+
         if react_div and react_div.has_attr("data-react-props"):
             props = json.loads(react_div["data-react-props"])
+            q_props = props.get("question", {})
             print("=====================")
-            pprint(props)
+            print(f"Raw data:")
+            pprint(q_props)
             print("=====================")
-            q = props.get("question", {})
-            title = q.get("name", "")
-            q_id = q.get("id")
-            time_posted = q.get("published_at")
-            num_forecasters = q.get("predictors_count")
-            num_comments = q.get("comments_count")
-            description = q.get("description", "")
-            binary = q.get("binary?")
-            continuous = q.get("continuous?")
-        else:
-            # fallback HTML title only
-            elem = soup.select_one("h1.question-title")
-            title = elem.text.strip() if elem else ""
-            num_forecasters = None
-            accuracy = None
-        # always pull the crowd forecast table for probabilities
-        # forecasts = self.fetch_crowd_forecast(question_url)
-        # print(num_forecasters, accuracy, forecasts)
-        resp = {
-            "url": question_url,
-            "title": title,
-            "num_forecasters": num_forecasters,
-            # "forecasts": forecasts,
-        }
-        # print(resp)
-        return resp
+            market_data = Market.from_gjopen_question_data(q_props, question_url, props)
 
-    # def fetch_crowd_forecast(self, question_url):  # pragma: no cover
-    #     """Fetch the crowd forecast table and return list of (answer, probability)."""
-    #     url = question_url.rstrip("/") + "/crowd_forecast"
-    #     resp = self.session.get(url)
-    #     soup = BeautifulSoup(resp.text, "html.parser")
-    #     table = soup.find("table", class_="consensus-table")
-    #     forecasts = []
-    #     if table:
-    #         for row in table.select("tbody tr"):
-    #             cells = row.find_all("td")
-    #             if len(cells) >= 2:
-    #                 label = cells[0].get_text(strip=True)
-    #                 percent = cells[1].get_text(strip=True)
-    #                 forecasts.append((label, percent))
-    #     return forecasts
+            if not market_data:
+                print(f"    No question data found in props for {question_url}")
+                return None
+            
+            # if market_data.continuous_scored:
+            print("=====================")
+            print(f"question encountered: {question_url}")
+            # props)
+            print("=====================")
+            
+            return market_data
+
 
 def load_credentials():
     creds_file = Path.home() / ".gjopen_credentials.json"
@@ -120,11 +145,22 @@ for page in range(2, 3):
     print(f"Fetching page {page}...")
     question_links = scraper.fetch_question_links(page)
     print(f"Found {len(question_links)} question links")
-    for link in question_links[:10]:
+    for link in question_links:
         print(f"  Scraping {link}")
         try:
-            data = scraper.fetch_prediction_data(link)
-            all_data.append(data)
+            market_obj = scraper.fetch_prediction_data(link)
+            if market_obj:
+                all_data.append(market_obj)
+            else:
+                print(f"    No data retrieved for {link}")
         except Exception as e:
             print(f"    Failed to scrape {link}: {e}")
+
+# Example: Print titles of scraped markets
+for item in all_data:
+    if isinstance(item, Market): # Ensure it's a Market object
+        pprint(item)
+    # If you still have raw responses in all_data from previous versions, handle them
+    # elif isinstance(item, requests.Response):
+    #     print(f"Raw response for URL: {item.url}")
 
