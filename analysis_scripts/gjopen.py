@@ -233,7 +233,7 @@ class GoodJudgmentOpenScraper:
                     print(f"    Failed to process {link}: {e}")
                 finally:
                     if i < len(question_links) - 1: # Don't sleep after the last item
-                        time.sleep(1) # ADDED: Sleep after each individual market scrape
+                        time.sleep(.7) # ADDED: Sleep after each individual market scrape
             return market_objs
 
         if num_pages_to_scrape is None:
@@ -259,7 +259,7 @@ class GoodJudgmentOpenScraper:
                     break
                 all_markets_data.extend(market_objs_on_page)
                 if page_num < num_pages_to_scrape: # Don't sleep after the last page
-                    time.sleep(3) # ADDED: Sleep after processing a page
+                    time.sleep(0.6) # ADDED: Sleep after processing a page
 
         if not all_markets_data:
             # print("No market data was successfully scraped.")

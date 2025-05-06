@@ -15,15 +15,82 @@ import numpy as np
 from openai import OpenAI
 from functools import lru_cache
 from datetime import datetime, timedelta
-import time
 
 # %%
+
+def initialize_client():
+    """Initialize Polymarket CLOB client and print API credentials"""
+    dotenv.load_dotenv(Path(__file__).parent.parent / ".env")
+    private_key = os.getenv("PK")
+    host = "https://clob.polymarket.com"
+    chain_id = POLYGON  # Polygon Mainnet
+
+    client = ClobClient(host, key=private_key, chain_id=chain_id)
+    api_creds = client.create_or_derive_api_creds()
+
+    print("API Key:", api_creds.api_key)
+    print("Secret:", api_creds.api_secret)
+    print("Passphrase:", api_creds.api_passphrase)
+
+    return client
+
+@lru_cache(maxsize=1)
+def fetch_all_markets(client, max_pages=200, return_active=True, cache_key=None):
+    """
+    Fetch all markets from Polymarket CLOB API with caching.
+    
+    Args:
+        client: ClobClient instance
+        max_pages: Maximum number of pages to fetch
+        return_active: Whether to return only active markets
+        cache_key: Optional cache key for invalidation (timestamp)
+    """
+    markets = client.get_markets()
+    all_markets = markets['data']
+    
+    page = 0
+    for _ in tqdm(range(max_pages)):
+        if not markets.get('next_cursor') or markets.get('next_cursor') == "LTE=":
+            print(f"No more pages to fetch")
+            break
+        page += 1
+        if page > max_pages:
+            print(f"Reached max pages: {max_pages}")
+            break
+        next_cursor = markets['next_cursor']
+        markets = client.get_markets(next_cursor=next_cursor)
+        all_markets.extend(markets['data'])
+    
+    df = pd.DataFrame(all_markets)
+    if not return_active:
+        return df, markets
+    else:
+        return df[df["active"] & ~df["closed"]].reset_index(drop=True), markets
+
+def get_markets_with_cache(client, max_pages=200, return_active=True, cache_duration_minutes=30):
+    """
+    Get markets with caching, automatically invalidating cache after specified duration.
+    
+    Args:
+        client: ClobClient instance
+        max_pages: Maximum number of pages to fetch
+        return_active: Whether to return only active markets
+        cache_duration_minutes: How long to keep the cache valid
+    """
+    current_time = datetime.now()
+    cache_key = current_time.replace(
+        minute=current_time.minute - (current_time.minute % cache_duration_minutes),
+        second=0,
+        microsecond=0
+    )
+    
+    return fetch_all_markets(client, max_pages, return_active, cache_key)
 
 # Insert new Gamma API functions here
 GAMMA_API_BASE_URL = "https://gamma-api.polymarket.com"
 
 @lru_cache(maxsize=1)
-def fetch_all_markets_gamma(return_active=True, cache_key=None, limit_per_page=1000, max_requests=2000):
+def fetch_all_markets_gamma(return_active=True, cache_key=None, limit_per_page=100, max_requests=200):
     """
     Fetch all markets from Polymarket Gamma API.
 
@@ -55,9 +122,8 @@ def fetch_all_markets_gamma(return_active=True, cache_key=None, limit_per_page=1
             if len(data) < limit_per_page: 
                 print(f"Fetched last page of markets ({len(data)} items) in request {i+1}.")
                 break
-            print(f"Fetching markets from Gamma API: {i+1} of {max_requests}; offset {offset}; fetched {len(all_markets_data)} markets")
+                
             offset += limit_per_page
-            #time.sleep(.1)
         except requests.exceptions.RequestException as e:
             print(f"Error fetching markets from Gamma API on request {i+1} (offset {offset}): {e}")
             break
@@ -82,7 +148,7 @@ def fetch_all_markets_gamma(return_active=True, cache_key=None, limit_per_page=1
             
     return df, None # Second element is None for consistency with original tuple return, meaning changed.
 
-def get_markets_with_cache_gamma(return_active=True, cache_duration_minutes=30, limit_per_page=500, max_requests=2000):
+def get_markets_with_cache_gamma(return_active=True, cache_duration_minutes=30, limit_per_page=100, max_requests=200):
     """
     Get markets from Gamma API with caching, automatically invalidating cache after specified duration.
     
@@ -117,23 +183,16 @@ def get_markets_with_cache_gamma(return_active=True, cache_duration_minutes=30, 
 # New way using Gamma API:
 # Fetches active markets (where 'closed' is False) from the Gamma API.
 # The first element of the tuple is the DataFrame of active markets.
-start_time = time.time()
 active_df, _ = get_markets_with_cache_gamma(return_active=True)
-end_time = time.time()
-print(f"Fetching markets from Gamma API took {end_time - start_time:.2f} seconds")
-print(len(active_df))
+
 # Now 'active_df' holds the active markets fetched from the Gamma API.
 # The rest of your script can proceed using this 'active_df'.
 # For example, if the original script used 'df' as the active dataframe:
 # df = active_df
 
+
 # %%
-sorted(list(active_df.columns))
-# %%
-for outcome, prices in zip(active_df["outcomes"], active_df["outcomePrices"]):
-    if len(outcome.split(", ")) > 2:
-        print(len(outcome.split(", ")), outcome, prices)
-        # break
+active_df["tokens"][1]
 
 # %%
 for i in range(100):
