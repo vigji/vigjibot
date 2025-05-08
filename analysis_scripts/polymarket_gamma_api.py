@@ -6,7 +6,8 @@ import dotenv
 from pathlib import Path
 from py_clob_client.client import ClobClient, TradeParams
 from py_clob_client.constants import POLYGON
-from regex import D
+# Remove regex import if D is not used, or clarify its use.
+# from regex import D 
 import requests
 from tqdm import tqdm
 from pprint import pprint
@@ -16,73 +17,208 @@ from openai import OpenAI
 from functools import lru_cache
 from datetime import datetime, timedelta
 import time
+import json # For parsing outcomes string
+from typing import List, Optional, Any, Dict # For type hinting
+from dataclasses import dataclass
 
 # %%
 
 # Insert new Gamma API functions here
 GAMMA_API_BASE_URL = "https://gamma-api.polymarket.com"
 
+# Dataclasses for structuring market data
+@lru_cache(maxsize=None) # To cache parsing of outcome strings if they repeat
+def parse_outcomes_string(outcomes_str: str) -> List[str]:
+    """Safely parses the outcomes string which is a JSON array."""
+    if not outcomes_str or not isinstance(outcomes_str, str):
+        return []
+    try:
+        parsed_outcomes = json.loads(outcomes_str)
+        if isinstance(parsed_outcomes, list):
+            return [str(o) for o in parsed_outcomes]
+        return []
+    except json.JSONDecodeError:
+        return []
+
+def format_outcomes(outcomes: List[str], prices: Optional[List[float]] = None) -> str:
+    """Formats outcomes and their prices into a readable string."""
+    if not outcomes:
+        return "N/A"
+    if prices and len(outcomes) == len(prices):
+        return "; ".join([f"{name}: {price:.2f}" for name, price in zip(outcomes, prices)])
+    return "; ".join(outcomes)
+
+def safe_float(value: Any, default: float = 0.0) -> float:
+    """Converts a value to float, returning a default if conversion fails or value is None."""
+    if value is None:
+        return default
+    try:
+        return float(value)
+    except (ValueError, TypeError):
+        return default
+
+def safe_str(value: Any, default: str = "") -> str:
+    """Converts a value to str, returning a default if value is None."""
+    if value is None:
+        return default
+    return str(value)
+
+def parse_datetime_optional(datetime_str: Optional[str]) -> Optional[datetime]:
+    """Parses an ISO format datetime string, returns None if input is None or invalid."""
+    if not datetime_str:
+        return None
+    try:
+        # Attempt to parse with or without milliseconds/Z
+        if '.' in datetime_str and 'Z' in datetime_str:
+            return datetime.fromisoformat(datetime_str.replace('Z', '+00:00'))
+        elif 'Z' in datetime_str: # No milliseconds
+             return datetime.strptime(datetime_str, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=None) # Make naive
+        return datetime.fromisoformat(datetime_str) # Should handle cases without Z as naive
+    except ValueError:
+        # print(f"Warning: Could not parse datetime string: {datetime_str}")
+        return None
+
+@dataclass
+class PolymarketMarket:
+    id: str
+    question: str
+    slug: str
+    description: str
+    outcomes: List[str]
+    outcome_prices: Optional[List[float]] # Prices corresponding to outcomes
+    formatted_outcomes: str
+    url: str
+    volume_24hr: float # Primary volume metric
+    liquidity: float # Primary liquidity metric (e.g., sum of AMM and CLOB)
+    end_date: Optional[datetime]
+    created_at: Optional[datetime]
+    updated_at: Optional[datetime]
+    active: bool
+    closed: bool
+    resolution_source: Optional[str]
+    # Add other fields as necessary, simplifying from the original list
+
+    @classmethod
+    def from_api_data(cls, data: Dict[str, Any]) -> "PolymarketMarket":
+        raw_outcomes = data.get("outcomes", "[]") # Default to empty JSON array string
+        parsed_outcomes_list = parse_outcomes_string(raw_outcomes)
+        
+        # outcomePrices can be NaN or a list of floats. Handle NaN.
+        raw_outcome_prices = data.get("outcomePrices")
+        parsed_outcome_prices: Optional[List[float]] = None
+        if isinstance(raw_outcome_prices, list):
+            parsed_outcome_prices = [safe_float(p) for p in raw_outcome_prices]
+        elif pd.isna(raw_outcome_prices) or raw_outcome_prices is None: # Handle explicit NaN or None
+             parsed_outcome_prices = [] # Or None, depending on desired handling
+        else: # If it's a single number or something unexpected, treat as no prices
+            parsed_outcome_prices = []
+
+
+        formatted_outcomes_str = format_outcomes(parsed_outcomes_list, parsed_outcome_prices)
+        
+        # Simplify volume: prioritize 'volume24hr', then 'volume', then default to 0
+        volume = safe_float(data.get("volume24hr"))
+        if volume == 0.0: # if volume24hr is not present or zero, try 'volume'
+            volume = safe_float(data.get("volume"))
+        if volume == 0.0: # if 'volume' is also not present or zero, try 'volumeNum'
+             volume = safe_float(data.get("volumeNum"))
+
+
+        # Simplify liquidity: sum of AMM and CLOB, or use 'liquidity' if available
+        liquidity = safe_float(data.get("liquidityAmm")) + safe_float(data.get("liquidityClob"))
+        if liquidity == 0.0: # If AMM and CLOB are zero or not present, try 'liquidity'
+            liquidity = safe_float(data.get("liquidity"))
+        if liquidity == 0.0: # if 'liquidity' is not present, try 'liquidityNum'
+            liquidity = safe_float(data.get("liquidityNum"))
+
+
+        slug = safe_str(data.get("slug"))
+        market_url = f"https://polymarket.com/event/{slug}" if slug else ""
+
+        return cls(
+            id=safe_str(data.get("id")),
+            question=safe_str(data.get("question")),
+            slug=slug,
+            description=safe_str(data.get("description")),
+            outcomes=parsed_outcomes_list,
+            outcome_prices=parsed_outcome_prices if parsed_outcome_prices else None,
+            formatted_outcomes=formatted_outcomes_str,
+            url=market_url,
+            volume_24hr=volume,
+            liquidity=liquidity,
+            end_date=parse_datetime_optional(data.get("endDate")),
+            created_at=parse_datetime_optional(data.get("createdAt")),
+            updated_at=parse_datetime_optional(data.get("updatedAt")),
+            active=bool(data.get("active", False)), # Default to False if not present
+            closed=bool(data.get("closed", False)), # Default to False if not present
+            resolution_source=safe_str(data.get("resolutionSource")) if data.get("resolutionSource") else None,
+        )
+
 @lru_cache(maxsize=1)
-def fetch_all_markets_gamma(return_active=True, cache_key=None, limit_per_page=1000, max_requests=2000):
+def fetch_all_markets_gamma(return_active=True, cache_key=None, max_requests=200):
     """
-    Fetch all markets from Polymarket Gamma API.
+    Fetch all markets from Polymarket Gamma API and parse them into PolymarketMarket objects.
 
     Args:
         return_active: Whether to return only active markets (where closed is False).
         cache_key: Optional cache key for invalidation (timestamp), used by lru_cache.
-                       This argument is present to be compatible with the caching strategy.
         limit_per_page: Number of markets to fetch per API call.
         max_requests: Maximum number of API requests to prevent infinite loops.
     """
-    all_markets_data = []
+    LIMIT_PER_PAGE = 500  # heuristically found to be the maximum that can be fetched in a single request
+    all_market_objects: List[PolymarketMarket] = []
     offset = 0
     
     print("Fetching markets from Gamma API...")
-    # Using range for loop control, tqdm can be wrapped around it if desired
     for i in range(max_requests): 
-        params = {"limit": limit_per_page, "offset": offset}
+        params = {"limit": LIMIT_PER_PAGE, "offset": offset}
         try:
             response = requests.get(f"{GAMMA_API_BASE_URL}/markets", params=params, timeout=20)
             response.raise_for_status()
-            data = response.json()
+            raw_data_list = response.json() # List of market dictionaries
             
-            if not data: 
+            if not raw_data_list: 
                 print(f"No more markets to fetch after {i+1} requests (offset {offset}).")
                 break
             
-            all_markets_data.extend(data)
+            # Parse each market dictionary into a PolymarketMarket object
+            for market_data in raw_data_list:
+                try:
+                    market_obj = PolymarketMarket.from_api_data(market_data)
+                    if return_active:
+                        if not market_obj.closed: # Assuming 'active' also implies not closed, but 'closed' is more explicit for filtering resolved markets
+                            all_market_objects.append(market_obj)
+                    else:
+                        all_market_objects.append(market_obj)
+                except Exception as e:
+                    print(f"Error parsing market data for market ID {market_data.get('id', 'Unknown')}: {e}")
+                    # Optionally, append a partially parsed object or skip
             
-            if len(data) < limit_per_page: 
-                print(f"Fetched last page of markets ({len(data)} items) in request {i+1}.")
+            if len(raw_data_list) < LIMIT_PER_PAGE: 
+                print(f"Fetched last page of markets ({len(raw_data_list)} items) in request {i+1}.")
                 break
-            print(f"Fetching markets from Gamma API: {i+1} of {max_requests}; offset {offset}; fetched {len(all_markets_data)} markets")
-            offset += limit_per_page
-            #time.sleep(.1)
+            print(f"Fetching markets from Gamma API: {i+1} of {max_requests}; offset {offset}; fetched {len(all_market_objects)} relevant markets")
+            offset += LIMIT_PER_PAGE
         except requests.exceptions.RequestException as e:
             print(f"Error fetching markets from Gamma API on request {i+1} (offset {offset}): {e}")
             break
-        except ValueError as e: 
+        except ValueError as e: # JSONDecodeError inherits from ValueError
             print(f"Error decoding JSON from Gamma API on request {i+1} (offset {offset}): {e}")
             break
-        if i == max_requests -1: # Check if loop finished due to max_requests
+        if i == max_requests - 1:
             print(f"Reached max_requests limit ({max_requests}) for Gamma API.")
 
+    if not all_market_objects:
+        print("No market data fetched or parsed from Gamma API.")
+        return pd.DataFrame(), None # Return empty DataFrame
 
-    if not all_markets_data:
-        print("No market data fetched from Gamma API.")
-        return pd.DataFrame(), None
-
-    df = pd.DataFrame(all_markets_data)
-    
-    if return_active:
-        if "closed" in df.columns:
-            df = df[~df["closed"]].reset_index(drop=True)
-        else:
-            print("Warning: 'closed' column not found in Gamma API market data. Cannot filter for active markets.")
+    # Create DataFrame from the list of dataclass objects
+    # This ensures that columns are derived from dataclass fields and values are direct attributes
+    df = pd.DataFrame([market_obj.__dict__ for market_obj in all_market_objects])
             
-    return df, None # Second element is None for consistency with original tuple return, meaning changed.
+    return df # Second element is None for consistency
 
-def get_markets_with_cache_gamma(return_active=True, cache_duration_minutes=30, limit_per_page=500, max_requests=2000):
+def get_markets_with_cache_gamma(return_active=True, cache_duration_minutes=30, max_requests=200):
     """
     Get markets from Gamma API with caching, automatically invalidating cache after specified duration.
     
@@ -92,6 +228,7 @@ def get_markets_with_cache_gamma(return_active=True, cache_duration_minutes=30, 
         limit_per_page: Number of markets to fetch per API call for fetch_all_markets_gamma.
         max_requests: Maximum number of API requests for fetch_all_markets_gamma.
     """
+    
     current_time = datetime.now()
     cache_key_time = current_time.replace(
         minute=current_time.minute - (current_time.minute % cache_duration_minutes),
@@ -102,174 +239,75 @@ def get_markets_with_cache_gamma(return_active=True, cache_duration_minutes=30, 
     return fetch_all_markets_gamma(
         return_active=return_active, 
         cache_key=cache_key_time, 
-        limit_per_page=limit_per_page, 
         max_requests=max_requests
     )
 
 # %%
 # Initialize client and fetch markets
-# client = initialize_client() # This initializes ClobClient. Keep/uncomment if other parts of the script use it.
-
-# Old way using CLOB API (commented out):
-# df, markets = get_markets_with_cache(client) # Default return_active=True, so df was active markets
-# active_df_clob = df[df["active"] & ~df["closed"]].reset_index(drop=True) # This was somewhat redundant but ensured name and copy
-
-# New way using Gamma API:
-# Fetches active markets (where 'closed' is False) from the Gamma API.
-# The first element of the tuple is the DataFrame of active markets.
 start_time = time.time()
-active_df, _ = get_markets_with_cache_gamma(return_active=True)
+active_df = get_markets_with_cache_gamma(return_active=True)
 end_time = time.time()
 print(f"Fetching markets from Gamma API took {end_time - start_time:.2f} seconds")
-print(len(active_df))
+print(f"Found {len(active_df)} active markets.")
 # Now 'active_df' holds the active markets fetched from the Gamma API.
 # The rest of your script can proceed using this 'active_df'.
-# For example, if the original script used 'df' as the active dataframe:
-# df = active_df
 
-# %%
-sorted(list(active_df.columns))
-# %%
-for outcome, prices in zip(active_df["outcomes"], active_df["outcomePrices"]):
-    if len(outcome.split(", ")) > 2:
-        print(len(outcome.split(", ")), outcome, prices)
-        # break
+if not active_df.empty:
+    print("\nSample of processed market data (first market):")
+    # Pretty print the first market's details if available
+    # Accessing via .iloc[0].to_dict() if you want to see it as a dict
+    # Or directly access attributes if you have the Pydantic model instance
+    # For DataFrame, to see the structure:
+    pprint(active_df.iloc[0].to_dict())
+    
+    print("\nColumns in the DataFrame:")
+    print(sorted(list(active_df.columns)))
 
-# %%
-for i in range(100):
-    # print(active_df.iloc[i, :]["tokens"])
-    print(active_df.iloc[i, :]["denominationToken"])
-
-# %%
-
-def get_order_book_data(token_id: str) -> dict | None:
-    """Fetches the order book data for a given token_id."""
-    url = f"https://clob.polymarket.com/book?token_id={token_id}"
-    try:
-        response = requests.get(url, timeout=10)
-        response.raise_for_status()  # Raise an exception for HTTP errors
-        return response.json()
-    except requests.exceptions.RequestException as e:
-        print(f"Error fetching order book for token {token_id}: {e}")
-        return None
-
-def calculate_token_liquidity(order_book: dict) -> dict:
-    """Calculates liquidity metrics from a token's order book."""
-    metrics = {
-        "bid_quantity": 0.0,
-        "bid_value": 0.0,
-        "ask_quantity": 0.0,
-        "ask_value": 0.0,
-    }
-
-    if not order_book:
-        return metrics
-
-    for order_type, orders in [("bid", order_book.get("bids", [])), ("ask", order_book.get("asks", []))]:
-        for order in orders:
-            try:
-                price = float(order.get("price", 0))
-                size = float(order.get("size", 0))
-                metrics[f"{order_type}_quantity"] += size
-                metrics[f"{order_type}_value"] += price * size
-            except (ValueError, TypeError) as e:
-                print(f"Skipping order due to data issue: {order}, error: {e}")
-    return metrics
-
-def calculate_market_liquidity_metrics(market_tokens_list: list) -> dict:
-    """
-    Calculates aggregated liquidity metrics for a market given its list of tokens.
-    Each item in market_tokens_list is expected to be a dict with a 'token_id'.
-    """
-    market_metrics = {
-        "total_market_bid_quantity": 0.0,
-        "total_market_bid_value": 0.0,
-        "total_market_ask_quantity": 0.0,
-        "total_market_ask_value": 0.0,
-        "liquidity_fetch_success_count": 0,
-    }
-
-    if not isinstance(market_tokens_list, list):
-        print("Warning: market_tokens_list is not a list. Skipping liquidity calculation.")
-        return market_metrics
-
-    for token_info in market_tokens_list:
-        token_id = token_info.get("token_id")
-        if not token_id:
-            print(f"Warning: Missing token_id in token_info: {token_info}")
-            continue
-
-        order_book = get_order_book_data(token_id)
-        if order_book:
-            market_metrics["liquidity_fetch_success_count"] += 1
-            token_liquidity = calculate_token_liquidity(order_book)
-            market_metrics["total_market_bid_quantity"] += token_liquidity["bid_quantity"]
-            market_metrics["total_market_bid_value"] += token_liquidity["bid_value"]
-            market_metrics["total_market_ask_quantity"] += token_liquidity["ask_quantity"]
-            market_metrics["total_market_ask_value"] += token_liquidity["ask_value"]
-            # Consider adding a small delay if making many requests rapidly
-            # import time
-            # time.sleep(0.1) 
-
-    return market_metrics
-
-# %%
-# Calculate liquidity metrics for each market in active_df
-# This might take some time if there are many markets, due to API calls for each token
-
-liquidity_data = []
-for index, row in tqdm(active_df.iterrows(), total=active_df.shape[0], desc="Calculating Market Liquidity"):
-    market_tokens = row["tokens"]
-    liquidity_metrics = calculate_market_liquidity_metrics(market_tokens)
-    liquidity_metrics["question_id"] = row["question_id"] # To merge back
-    liquidity_data.append(liquidity_metrics)
-
-liquidity_df = pd.DataFrame(liquidity_data)
-
-# Merge liquidity data back into active_df
-if not liquidity_df.empty:
-    active_df = pd.merge(active_df, liquidity_df, on="question_id", how="left")
-
-print("Liquidity metrics added to active_df.")
-pprint(active_df[[col for col in active_df.columns if 'market' in col or 'question_id' in col]].head())
-
-
-# %%
-import requests
-from pprint import pprint
-
-# Replace with the actual token ID for the outcome
-i = 2 # Example index, ensure it's valid for your active_df
-# Ensure the market at index 'i' has at least two tokens if accessing tokens[1]
-if len(active_df) > i and isinstance(active_df.iloc[i, :]["tokens"], list) and len(active_df.iloc[i, :]["tokens"]) > 1:
-    token_id = active_df.iloc[i, :]["tokens"][1]["token_id"]
-
-    # Construct the API URL
-    url = f"https://clob.polymarket.com/book?token_id={token_id}"
-
-    # Make the GET request
-    response = requests.get(url)
-
-    # Check if the request was successful
-    if response.status_code == 200:
-        order_book = response.json()
-        print("Order Book Data for a sample token:")
-        pprint(order_book)
-        # Example of calculating liquidity for this single token
-        sample_token_liquidity = calculate_token_liquidity(order_book)
-        print("Liquidity for sample token:")
-        pprint(sample_token_liquidity)
-    else:
-        print(f"Failed to fetch data for sample token. Status code: {response.status_code}")
+    print("\nExample of formatted outcomes for the first market (if available):")
+    if 'formatted_outcomes' in active_df.columns and len(active_df) > 0:
+        print(active_df.iloc[0]['formatted_outcomes'])
+    
+    print("\nExample of URL for the first market (if available):")
+    if 'url' in active_df.columns and len(active_df) > 0:
+        print(active_df.iloc[0]['url'])
 else:
-    print(f"Could not select sample token_id at index {i}, token index 1. Check active_df content and length.")
+    print("No active markets fetched or DataFrame is empty.")
 
 
 # %%
+# sorted(list(active_df.columns)) # This can be removed or kept for debugging
+# %%
+# Example of how you might inspect specific fields after processing:
+# if not active_df.empty and 'outcomes' in active_df.columns and 'outcome_prices' in active_df.columns:
+#     for index, row in active_df.head().iterrows(): # Iterate over first few rows
+#         print(f"Market: {row['question']}")
+#         print(f"  Outcomes: {row['outcomes']}")
+#         print(f"  Prices: {row['outcome_prices']}")
+#         print(f"  Formatted: {row['formatted_outcomes']}")
+#         if len(row['outcomes']) > 2 and row['outcome_prices'] and len(row['outcomes']) == len(row['outcome_prices']):
+#             print(f"  Multi-outcome: {row['question']} -> Yes/No/Other structure might be present or just multiple options")
+#         # break # if you only want the first one
+# else:
+#     print("DataFrame is empty or missing 'outcomes'/'outcome_prices' columns for detailed inspection.")
 
-# Ensure the market at index 'i' has at least one token if accessing tokens[0]
-if len(active_df) > i and isinstance(active_df.iloc[i, :]["tokens"], list) and len(active_df.iloc[i, :]["tokens"]) > 0:
-    pprint(f"Token ID from active_df sample: {active_df.iloc[i, :]['tokens'][0]['token_id']}")
+# %%
+# Drop all columns with only nan values - This might not be necessary if dataclasses handle defaults
+# active_df_filt = active_df.dropna(axis=1, how='all')
+# order columns alphabetically
+# active_df_filt = active_df_filt.reindex(sorted(active_df_filt.columns), axis=1).reset_index(drop=True)
+# The DataFrame created from __dict__ will already have columns ordered by dataclass definition.
+# If you still want alphabetical, you can apply it:
+if not active_df.empty:
+    active_df_sorted = active_df.reindex(sorted(active_df.columns), axis=1)
+    print("\nDataFrame with columns sorted alphabetically (first row):")
+    pprint(active_df_sorted.iloc[0].to_dict() if len(active_df_sorted) > 0 else "Empty sorted DataFrame")
 else:
-    print(f"Could not print sample token_id at index {i}, token index 0.")
-# %% 
+    print("DataFrame is empty, skipping sorting and display.")
+# %%
+# list(active_df_filt.columns) # Use active_df.columns directly
+# %%
+# active_df_filt[:1].to_dict() # Use active_df.head(1).to_dict('records')[0] for a single dict
+# %%
+# type(active_df_filt[:1].to_dict()["outcomePrices"]) # Inspect types directly from the DataFrame
+# Example: if 'outcome_prices' in active_df.columns and len(active_df) > 0: print(type(active_df.iloc[0]['outcome_prices']))
+# %%
