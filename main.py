@@ -234,6 +234,7 @@ class TemplateForecaster(ForecastBot):
             Option_N: Probability_N
 
             Write every probability value only once not to confuse the parser, and do not include any other text after the probabilities in your answer.
+            Make sure you indicate probability as a percentage, and that the sum of all probabilities is 100%.
             """
         )
         logger.info(

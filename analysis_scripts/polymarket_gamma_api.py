@@ -138,7 +138,7 @@ for outcome, prices in zip(active_df["outcomes"], active_df["outcomePrices"]):
 # %%
 for i in range(100):
     # print(active_df.iloc[i, :]["tokens"])
-    print(len(active_df.iloc[i, :]["tokens"]))
+    print(active_df.iloc[i, :]["denominationToken"])
 
 # %%
 
