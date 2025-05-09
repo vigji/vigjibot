@@ -50,108 +50,108 @@ class MarketMetadata:
     resolution_time: Optional[datetime]
 
     @classmethod
-    def from_api_data(cls, data: Dict[str, Any]) -> Dict[str, Any]:
+    def from_api_data(cls, data: Dict[str, Any]) -> "MarketMetadata":
         """Returns a dict of metadata fields from API data"""
-        return {
-            "id": "manifold_"+data["id"],
-            "question": data["question"],
-            "outcome_type": data["outcomeType"],
-            "created_time": datetime.fromtimestamp(data["createdTime"] / 1000),
-            "creator_name": data["creatorName"],
-            "creator_username": data["creatorUsername"],
-            "slug": data["slug"],
-            "volume": data.get("volume", 0),
-            "unique_bettor_count": data.get("uniqueBettorCount", 0),
-            "total_liquidity": data.get("totalLiquidity", 0),
-            "close_time": datetime.fromtimestamp(data["closeTime"] / 1000) if data.get("closeTime") else None,
-            "last_updated_time": datetime.fromtimestamp(data["lastUpdatedTime"] / 1000),
-            "tags": data.get("tags", []),
-            "group_slugs": data.get("groupSlugs", []),
-            "visibility": data.get("visibility", "public"),
-            "resolution": data.get("resolution"),
-            "resolution_time": datetime.fromtimestamp(data["resolutionTime"] / 1000) if data.get("resolutionTime") else None,
-        }
-
-
-@dataclass
-class OutcomeMixin:
-    """Mixin for outcome-related functionality"""
-    outcomes: List[str]
-    outcome_prices: List[float]
-    formatted_outcomes: str
-
-    @staticmethod
-    def format_outcomes(outcomes: List[str], prices: List[float]) -> str:
-        """Format outcomes and prices into a string"""
-        return "; ".join([f"{o}: {(p * 100):.1f}%" for o, p in zip(outcomes, prices)])
-
-
-@dataclass
-class ManifoldMarket(MarketMetadata, ABC):
-    """Abstract base class for all market types"""
-
-    def get_url(self) -> str:
-        return f"https://manifold.markets/{self.slug}"
-
-    def __str__(self) -> str:
-        return f"{self.question} ({self.outcome_type})"
-
-    @classmethod
-    @abstractmethod
-    def from_api_data(cls, data: Dict[str, Any]) -> "ManifoldMarket":
-        pass
-
-
-@dataclass
-class BinaryManifoldMarket(ManifoldMarket, OutcomeMixin):
-    probability: Optional[float]
-    initial_probability: Optional[float]
-    p: Optional[float]
-    total_shares: Optional[float]
-    pool: Optional[float]
-
-    @classmethod
-    def from_api_data(cls, data: Dict[str, Any]) -> "BinaryManifoldMarket":
-        base_fields = MarketMetadata.from_api_data(data)
-        probability = data.get("probability")
-        
-        # Set binary outcomes
-        outcomes = ["Yes", "No"]
-        outcome_prices = [probability if probability is not None else 0.5, 
-                        1 - probability if probability is not None else 0.5]
-        
         return cls(
-            **base_fields,
-            probability=probability,
-            initial_probability=data.get("initialProbability"),
-            p=data.get("p"),
-            total_shares=data.get("totalShares"),
-            pool=data.get("pool"),
-            outcomes=outcomes,
-            outcome_prices=outcome_prices,
-            formatted_outcomes=cls.format_outcomes(outcomes, outcome_prices)
+            id="manifold_" + data["id"],
+            question=data["question"],
+            outcome_type=data["outcomeType"],
+            created_time=datetime.fromtimestamp(data["createdTime"] / 1000),
+            creator_name=data["creatorName"],
+            creator_username=data["creatorUsername"],
+            slug=data["slug"],
+            volume=data.get("volume", 0),
+            unique_bettor_count=data.get("uniqueBettorCount", 0),
+            total_liquidity=data.get("totalLiquidity", 0),
+            close_time=datetime.fromtimestamp(data["closeTime"] / 1000)
+            if data.get("closeTime")
+            else None,
+            last_updated_time=datetime.fromtimestamp(data["lastUpdatedTime"] / 1000),
+            tags=data.get("tags", []),
+            group_slugs=data.get("groupSlugs", []),
+            visibility=data.get("visibility", "public"),
+            resolution=data.get("resolution"),
+            resolution_time=datetime.fromtimestamp(data["resolutionTime"] / 1000)
+            if data.get("resolutionTime")
+            else None,
         )
 
 
 @dataclass
-class MultiChoiceManifoldMarket(ManifoldMarket, OutcomeMixin):
-    answers: List[ManifoldAnswer]
+class ManifoldMarket:
+    """Unified class for Manifold markets, handling different outcome types."""
+
+    metadata: MarketMetadata
+    outcomes: List[str]
+    outcome_prices: List[float]
+    formatted_outcomes: str
+    # Binary specific
+    probability: Optional[float] = None
+    initial_probability: Optional[float] = None
+    p: Optional[float] = None
+    total_shares: Optional[float] = None
+    pool: Optional[float] = None
+    # Multi-choice specific
+    answers: Optional[List[ManifoldAnswer]] = None
+
+    def get_url(self) -> str:
+        return f"https://manifold.markets/{self.metadata.slug}"
+
+    def __str__(self) -> str:
+        return f"{self.metadata.question} ({self.metadata.outcome_type})"
+
+    @staticmethod
+    def _format_outcomes(outcomes: List[str], prices: List[float]) -> str:
+        """Format outcomes and prices into a string"""
+        return "; ".join([f"{o}: {(p * 100):.1f}%" for o, p in zip(outcomes, prices)])
 
     @classmethod
-    def from_api_data(cls, data: Dict[str, Any]) -> "MultiChoiceManifoldMarket":
-        base_fields = MarketMetadata.from_api_data(data)
-        answers = [ManifoldAnswer.from_api_data(ans) for ans in data.get("answers", [])]
-        
-        # Extract outcomes and probabilities from answers
-        outcomes = [ans.text for ans in answers]
-        outcome_prices = [ans.probability for ans in answers]
-        
+    def from_api_data(cls, data: Dict[str, Any]) -> Optional["ManifoldMarket"]:
+        metadata = MarketMetadata.from_api_data(data)
+        outcome_type = metadata.outcome_type
+
+        outcomes = []
+        outcome_prices = []
+        probability = None
+        initial_probability = None
+        p_val = None
+        total_shares = None
+        pool_val = None
+        answers_obj = None
+
+        if outcome_type == "BINARY":
+            probability = data.get("probability")
+            initial_probability = data.get("initialProbability")
+            p_val = data.get("p")
+            total_shares = data.get("totalShares")
+            pool_val = data.get("pool")
+            outcomes = ["Yes", "No"]
+            outcome_prices = [
+                probability if probability is not None else 0.5,
+                1 - probability if probability is not None else 0.5,
+            ]
+        elif outcome_type == "MULTIPLE_CHOICE":
+            answers_data = data.get("answers", [])
+            answers_obj = [ManifoldAnswer.from_api_data(ans) for ans in answers_data]
+            outcomes = [ans.text for ans in answers_obj]
+            outcome_prices = [ans.probability for ans in answers_obj]
+        else:
+            # Potentially handle other types or return None if unsupported
+            return None
+
+        formatted_outcomes_str = cls._format_outcomes(outcomes, outcome_prices)
+
         return cls(
-            **base_fields,
-            answers=answers,
+            metadata=metadata,
             outcomes=outcomes,
             outcome_prices=outcome_prices,
-            formatted_outcomes=cls.format_outcomes(outcomes, outcome_prices)
+            formatted_outcomes=formatted_outcomes_str,
+            probability=probability,
+            initial_probability=initial_probability,
+            p=p_val,
+            total_shares=total_shares,
+            pool=pool_val,
+            answers=answers_obj,
         )
 
 
@@ -169,14 +169,10 @@ class ManifoldMarketClient:
             await self.session.close()
 
     @staticmethod
-    def _create_market(data: Dict[str, Any]) -> Optional[Union[BinaryManifoldMarket, MultiChoiceManifoldMarket]]:
+    def _create_market(data: Dict[str, Any]) -> Optional[ManifoldMarket]:
         """Create appropriate market type from API data."""
         try:
-            if data["outcomeType"] == "BINARY":
-                return BinaryManifoldMarket.from_api_data(data)
-            elif data["outcomeType"] == "MULTIPLE_CHOICE":
-                return MultiChoiceManifoldMarket.from_api_data(data)
-            return None
+            return ManifoldMarket.from_api_data(data)
         except Exception as e:
             print(f"Error creating market {data.get('id')}: {e}")
             return None
@@ -219,7 +215,7 @@ class ManifoldMarketClient:
 
     async def _get_market_details(self, market_id: str) -> Optional[Dict[str, Any]]:
         """Fetch details for a specific market."""
-        base_url = f"https://api.manifold.markets/v0/market/{market_id}"
+        base_url = f"https://api.manifold.markets/v0/market/{market_id.replace('manifold_', '')}"
         try:
             async with self.session.get(base_url) as response:
                 response.raise_for_status()
@@ -228,7 +224,7 @@ class ManifoldMarketClient:
             print(f"Error fetching details for market {market_id}: {e}")
             return None
 
-    async def _process_market(self, market_data: Dict[str, Any], min_unique_bettors: int, min_volume: float) -> Optional[Union[BinaryManifoldMarket, MultiChoiceManifoldMarket]]:
+    async def _process_market(self, market_data: Dict[str, Any], min_unique_bettors: int, min_volume: float) -> Optional[ManifoldMarket]:
         """Process a single market's data."""
         if market_data.get("uniqueBettorCount", 0) < min_unique_bettors:
             return None
@@ -246,7 +242,7 @@ class ManifoldMarketClient:
         min_unique_bettors: int = 20,
         min_volume: float = 0,
         limit: int = 1000
-    ) -> List[Union[BinaryManifoldMarket, MultiChoiceManifoldMarket]]:
+    ) -> List[ManifoldMarket]:
         """Get filtered markets that meet the criteria."""
         # First get all open markets
         raw_markets = await self._get_open_markets(limit)
@@ -255,32 +251,41 @@ class ManifoldMarketClient:
             return []
             
         # Filter markets based on basic criteria
-        filtered_markets = [
-            m for m in raw_markets
+        # Create a list of market IDs to fetch details for, avoiding fetching for already filtered out markets
+        markets_to_fetch_details_for = [
+            m["id"] for m in raw_markets
             if m.get("uniqueBettorCount", 0) >= min_unique_bettors
             and m.get("volume", 0) >= min_volume
             and m.get("outcomeType") in ["BINARY", "MULTIPLE_CHOICE"]
         ]
         
-        # Then fetch full details for filtered markets
+        print(f"Initial open markets matching basic criteria: {len(markets_to_fetch_details_for)}")
+
         markets = []
-        for i in tqdm(range(0, len(filtered_markets), self.max_concurrent), desc="Processing batches"):
-            batch = filtered_markets[i:i + self.max_concurrent]
-            tasks = [self._get_market_details(market_data["id"]) for market_data in batch]
+        for i in tqdm(range(0, len(markets_to_fetch_details_for), self.max_concurrent), desc="Processing batches of market details"):
+            batch_ids = markets_to_fetch_details_for[i:i + self.max_concurrent]
+            tasks = [self._get_market_details(market_id) for market_id in batch_ids]
             results = await asyncio.gather(*tasks)
             
-            for market_data, full_data in zip(batch, results):
+            for market_id, full_data in zip(batch_ids, results):
                 if not full_data:
-                    print(f"Failed to fetch details for market {market_data['id']}")
+                    # print(f"Failed to fetch details for market {market_id}") # Already printed in _get_market_details
                     continue
                 try:
-                    market = self._create_market(full_data)
-                    if market:
-                        markets.append(market)
-                    else:
-                        print(f"Failed to create market object for {market_data['id']}")
+                    # Ensure the ID passed to _create_market is the original one from Manifold, not "manifold_" + id
+                    market_obj = self._create_market(full_data)
+                    if market_obj:
+                        # Additional check, though most filtering is done before fetching details
+                        if market_obj.metadata.unique_bettor_count >= min_unique_bettors and \
+                           market_obj.metadata.volume >= min_volume:
+                            markets.append(market_obj)
+                        # else:
+                        #     print(f"Market {market_obj.metadata.id} ({market_obj.metadata.slug}) did not meet criteria after fetching details.")
+                    # else:
+                        # print(f"Failed to create market object for {full_data.get('id')}") # Already printed in _create_market
+                        pass
                 except Exception as e:
-                    print(f"Error processing market {market_data['id']}: {e}")
+                    print(f"Error processing market {full_data.get('id')} after fetching details: {e}")
                     continue
             
         print(f"Final number of processed markets: {len(markets)}")
@@ -292,13 +297,38 @@ async def main():
         async with ManifoldMarketClient(max_concurrent=10) as client:
             markets = await client.get_filtered_markets(
                 min_unique_bettors=50,
-                min_volume=500
+                min_volume=500,
+                # limit=200 # Reduced limit for faster testing
             )
             print(f"Found {len(markets)} markets matching criteria")
             
-            df = pd.DataFrame(markets) # ([market.__dict__ for market in markets])
-            print(df.head())
+            # Convert list of ManifoldMarket objects to list of dicts for DataFrame
+            market_dicts = []
+            for market in markets:
+                market_dict = market.metadata.__dict__  # Start with metadata
+                # Add other top-level fields from ManifoldMarket
+                market_dict['outcomes'] = market.outcomes
+                market_dict['outcome_prices'] = market.outcome_prices
+                market_dict['formatted_outcomes'] = market.formatted_outcomes
+                market_dict['probability'] = market.probability
+                market_dict['initial_probability'] = market.initial_probability
+                market_dict['p'] = market.p
+                market_dict['total_shares'] = market.total_shares
+                market_dict['pool'] = market.pool
+                # For answers, store their text representation or similar if needed
+                if market.answers:
+                    market_dict['answers'] = [ans.text for ans in market.answers] # Or ans.__dict__
+                else:
+                    market_dict['answers'] = None
+                market_dicts.append(market_dict)
 
+            if market_dicts:
+                df = pd.DataFrame(market_dicts)
+                print(df.head())
+                # Optional: print columns to verify
+                # print(df.columns)
+            else:
+                print("No markets to display in DataFrame.")
 
 
 if __name__ == "__main__":
