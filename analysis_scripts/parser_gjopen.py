@@ -12,6 +12,8 @@ import pandas as pd
 import time
 from tqdm import tqdm
 
+from common_markets import PooledMarket, BaseMarket, parse_datetime_flexible
+
 BASE_URL = "https://www.gjopen.com"
 QUESTIONS_URL = f"{BASE_URL}/questions"
 LOGIN_URL = f"{BASE_URL}/users/sign_in"
@@ -23,8 +25,8 @@ class GJOpenAnswer:
     # id: Optional[int] = None # Uncomment if you plan to use it
 
 @dataclass
-class GJOpenMarket:
-    id: int
+class GJOpenMarket(BaseMarket):
+    id: str # Changed from int
     question: str
     published_at: str
     predictors_count: int
@@ -39,12 +41,12 @@ class GJOpenMarket:
     q_type: str
 
     @classmethod
-    def from_gjopen_question_data(cls, q_props: dict, question_url: str) -> Optional["Market"]:
+    def from_gjopen_question_data(cls, q_props: dict, question_url: str) -> Optional["GJOpenMarket"]: # Changed Market to GJOpenMarket
         if not q_props:
             return None
 
         outcomes_data = q_props.get("answers", [])
-        outcomes = [
+        outcomes_list = [
             GJOpenAnswer(
                 name=a.get("name"),
                 probability=a.get("probability"),
@@ -52,21 +54,47 @@ class GJOpenMarket:
             )
             for a in outcomes_data
         ]
-        formatted_outcomes = "; ".join([f"{a.name.strip()}: {a.probability*100}%" for a in outcomes])
-        formatted_outcomes = formatted_outcomes.replace("\n", "").replace("\r", "")
+        # Updated formatted_outcomes to handle None probabilities
+        formatted_outcomes_str = "; ".join([
+            f"{a.name.strip()}: {f'{a.probability*100:.1f}%' if a.probability is not None else 'N/A'}" 
+            for a in outcomes_list
+        ])
+        formatted_outcomes_str = formatted_outcomes_str.replace("\n", "").replace("\r", "")
+        
         return cls(
-            id="gjopen_"+str(q_props.get("id")),
+            id="gjopen_"+str(q_props.get("id")), # id is now string
             question=q_props.get("name", ""),
             published_at=q_props.get("published_at"),
             predictors_count=q_props.get("predictors_count"),
             comments_count=q_props.get("comments_count"),
             description=q_props.get("description", ""),
-            binary=q_props.get("binary?"),
-            continuous_scored=q_props.get("continuous_scored?"),
-            outcomes=outcomes,
+            binary=bool(q_props.get("binary?")), # Ensure bool conversion
+            continuous_scored=bool(q_props.get("continuous_scored?")), # Ensure bool conversion
+            outcomes=outcomes_list,
             url=question_url,
             q_type=q_props.get("type"),
-            formatted_outcomes=formatted_outcomes
+            formatted_outcomes=formatted_outcomes_str
+        )
+
+    def to_pooled_market(self) -> PooledMarket:
+        outcome_names = [ans.name for ans in self.outcomes]
+        outcome_probs = [ans.probability for ans in self.outcomes]
+
+        return PooledMarket(
+            id=self.id,
+            question=self.question,
+            outcomes=outcome_names,
+            outcome_probabilities=outcome_probs,
+            formatted_outcomes=self.formatted_outcomes,
+            url=self.url,
+            published_at=parse_datetime_flexible(self.published_at),
+            source_platform="GJOpen",
+            volume=None,  # Not available directly from GJOpen API structure shown
+            n_forecasters=self.predictors_count,
+            comments_count=self.comments_count,
+            original_market_type=self.q_type,
+            is_resolved=None, # No direct field, q_type might hint but not a clear boolean
+            raw_market_data=self
         )
 
 class GoodJudgmentOpenScraper:
@@ -180,10 +208,12 @@ class GoodJudgmentOpenScraper:
                 props_str = react_div["data-react-props"]
                 props = json.loads(props_str)
             except json.JSONDecodeError:
+                # print(f"    Warning: Failed to decode JSON props for {question_url}")
                 return None
 
             q_props = props.get("question", {})
             if not q_props:
+                # print(f"    Warning: 'question' key missing in props for {question_url}")
                 return None
               
             market_data = GJOpenMarket.from_gjopen_question_data(q_props, question_url)
@@ -194,81 +224,108 @@ class GoodJudgmentOpenScraper:
             # print(f"    No react props div found for {question_url}, cannot extract structured data.")
             return None
 
-
-    def scrape_markets(self, num_pages_to_scrape: Optional[int] = None) -> pd.DataFrame:
+    def fetch_markets(self, max_pages: int = 15, only_open: bool = True) -> List[GJOpenMarket]:
         """
-        Scrapes markets from Good Judgment Open.
+        Fetches markets from Good Judgment Open.
 
         Args:
-            num_pages_to_scrape: The number of pages to scrape. 
-                                 Defaults to 10. If None, attempts to scrape all available pages.
+            max_pages: The maximum number of pages to scrape. Defaults to 15.
+            only_open: If True, attempts to fetch only open markets. 
+                       (Note: GJOpen API for listing questions doesn't directly support
+                        filtering by 'open' status, so this flag is a placeholder for
+                        potential future post-filtering logic if resolution status becomes available.)
         
         Returns:
-            A pandas DataFrame containing the scraped market data.
+            A list of GJOpenMarket objects.
         """
         PAUSE_AFTER_PAGE = 0.6
         PAUSE_AFTER_MARKET = 0.7
         all_markets_data: List[GJOpenMarket] = []
 
-        if num_pages_to_scrape is None:
-            num_pages_to_scrape = 15
+        # The only_open flag is noted here, but GJOpen's question listing API 
+        # doesn't have a direct filter for open/closed status. 
+        # Filtering would typically happen after fetching if resolution status was available.
+        if only_open:
+            # print("Note: 'only_open' is set to True, but GJOpen API does not directly filter by open status when listing questions.")
+            pass
 
-        for page_num in tqdm(range(1, num_pages_to_scrape + 1), desc="Scraping pages"):
-            # market_objs_on_page = _process_page(page_num)
+        for page_num in tqdm(range(1, max_pages + 1), desc="Scraping GJOpen pages"):
             question_links = self._fetch_question_links_for_page(page_num)
             if not question_links:
-                print(f"No question links found on page {page_num}.")
-                return False
+                print(f"No more question links found on page {page_num}. Stopping.")
+                break 
                 
-            market_objs_on_page = []
+            market_objs_on_page: List[GJOpenMarket] = []
             for i, link in enumerate(question_links):
-                # print(f"  Scraping {link}")
                 try:
                     market_obj = self._fetch_market_data_for_url(link)
                     if market_obj:
                         market_objs_on_page.append(market_obj)
-
                 except Exception as e:
                     print(f"    Failed to process {link}: {e}")
                 finally:
-                    if i < len(question_links) - 1: # Don't sleep after the last item
+                    if i < len(question_links) - 1:
                         time.sleep(PAUSE_AFTER_MARKET)
-            if not market_objs_on_page:
-                print("Stopping early.")
-                break
+            
+            if not market_objs_on_page and question_links: # Page had links but no markets parsed
+                 print(f"No market objects successfully parsed from page {page_num}, though links were found. Stopping.")
+                 break
+            
             all_markets_data.extend(market_objs_on_page)
-            if page_num < num_pages_to_scrape: # Don't sleep after the last page
+            
+            if not market_objs_on_page and not question_links: # No links and no markets, definitely stop
+                print(f"Stopping early on page {page_num} as no links or markets were found.")
+                break
+
+            if page_num < max_pages:
                 time.sleep(PAUSE_AFTER_PAGE)
 
-        if not all_markets_data:
-            return pd.DataFrame()
-
-        df = pd.DataFrame([market_obj.__dict__ for market_obj in all_markets_data])
-        return df
+        return all_markets_data
 
 if __name__ == "__main__":
-    print("Starting GJOPEscraper example...")
-    # To use credentials from environment variables:
-    # Ensure GJO_EMAIL and GJO_PASSWORD are set.
-    # scraper = GoodJudgmentOpenScraper()
-
-    # To use credentials from a file (if env vars are not set):
-    # Ensure ~/.gjopen_credentials.json exists and is correctly formatted.
-    # scraper = GoodJudgmentOpenScraper()
-    
-    # To provide credentials directly (less secure, for testing):
-    # scraper = GoodJudgmentOpenScraper(email="your@email.com", password="yourpassword")
+    print("Starting GoodJudgmentOpenScraper example...")
     
     # Default: tries env vars, then file.
-    scraper = GoodJudgmentOpenScraper()
+    # Ensure GJO_EMAIL and GJO_PASSWORD are set in your environment,
+    # or you have a ~/.gjopen_credentials.json file.
+    try:
+        scraper = GoodJudgmentOpenScraper()
+        print("Successfully initialized and logged into Good Judgment Open.")
+    except (FileNotFoundError, ValueError, ConnectionError) as e:
+        print(f"Error initializing scraper: {e}")
+        print("Please ensure credentials are set up via environment variables (GJO_EMAIL, GJO_PASSWORD) or ~/.gjopen_credentials.json")
+        exit(1)
 
-    # Scrape a few pages (e.g., 2)
-    num_pages = 5
-    print(f"\nScraping the first {num_pages} page(s) of markets sorted by predictor count...")
+    num_pages_to_fetch = 2 
+    print(f"Fetching the first {num_pages_to_fetch} page(s) of markets sorted by predictor count...")
     start_time = time.time()
-    markets_df = scraper.scrape_markets(num_pages_to_scrape=num_pages)
+    
+    # Fetch markets (returns List[GJOpenMarket])
+    # only_open=True is passed but note GJOpen's API limitations mentioned in fetch_markets docstring
+    gjopen_markets_list = scraper.fetch_markets(max_pages=num_pages_to_fetch, only_open=True)
     end_time = time.time()
-    print(f"Scraping took {end_time - start_time:.2f} seconds")
-    print(f"Scraped {len(markets_df)} markets")
-    markets_df.to_csv("gjopen_markets.csv", index=False)
+
+    print(f"Fetching took {end_time - start_time:.2f} seconds.")
+    print(f"Fetched {len(gjopen_markets_list)} GJOpen markets.")
+
+    if gjopen_markets_list:
+        # Convert to PooledMarket format
+        pooled_markets = [market.to_pooled_market() for market in gjopen_markets_list]
+        print(f"Converted {len(pooled_markets)} markets to PooledMarket format.")
+
+        if pooled_markets:
+            print("Details of the first pooled market:")
+            pprint(pooled_markets[0].__dict__)
+
+            # Optional: Create a DataFrame from the pooled markets for analysis or CSV export
+            df_pooled = pd.DataFrame([pm.__dict__ for pm in pooled_markets])
+            # print(f"Created DataFrame with {len(df_pooled)} pooled markets. Columns: {df_pooled.columns.tolist()}")
+            # print(df_pooled.head())
+            # Example: Save to CSV
+            # df_pooled.to_csv("gjopen_pooled_markets.csv", index=False)
+            # print("Saved pooled markets to gjopen_pooled_markets.csv")
+        else:
+            print("No markets were successfully converted to PooledMarket format.")
+    else:
+        print("No markets were fetched from Good Judgment Open.")
 

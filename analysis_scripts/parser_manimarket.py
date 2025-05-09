@@ -203,9 +203,6 @@ class ManifoldMarketClient:
                     # Filter out resolved markets
                     open_markets = [m for m in markets if not m.get("isResolved", False)]
                     all_markets.extend(open_markets)
-                    
-                    #print(f"Fetched {len(open_markets)} open markets in this batch")
-                    #print(f"Total markets so far: {len(all_markets)}")
                     pbar.set_description(f"Fetched {len(all_markets)} open markets")
                     
                     # Get the ID of the last market for pagination
@@ -264,13 +261,11 @@ class ManifoldMarketClient:
             and m.get("volume", 0) >= min_volume
             and m.get("outcomeType") in ["BINARY", "MULTIPLE_CHOICE"]
         ]
-        print(f"Markets after basic filtering: {len(filtered_markets)}")
         
         # Then fetch full details for filtered markets
         markets = []
-        for i in range(0, len(filtered_markets), self.max_concurrent):
+        for i in tqdm(range(0, len(filtered_markets), self.max_concurrent), desc="Processing batches"):
             batch = filtered_markets[i:i + self.max_concurrent]
-            print(f"Processing batch {i//self.max_concurrent + 1} of {(len(filtered_markets) + self.max_concurrent - 1)//self.max_concurrent}")
             tasks = [self._get_market_details(market_data["id"]) for market_data in batch]
             results = await asyncio.gather(*tasks)
             
@@ -291,51 +286,19 @@ class ManifoldMarketClient:
         print(f"Final number of processed markets: {len(markets)}")
         return markets
 
-    @staticmethod
-    def print_market_details(market: Union[BinaryManifoldMarket, MultiChoiceManifoldMarket]):
-        """Print details for a market."""
-        print("\n=== Market Details ===")
-        print(f"ID: {market.id}")
-        print(f"Question: {market.question}")
-        print(f"Type: {market.outcome_type}")
-        print(f"Created: {market.created_time}")
-        print(f"Creator: {market.creator_name} (@{market.creator_username})")
-        print(f"URL: {market.get_url()}")
-        
-        print("\n=== Market Activity ===")
-        print(f"Total volume: {market.volume:,.0f} M$")
-        print(f"Unique bettors: {market.unique_bettor_count}")
-        print(f"Total liquidity: {market.total_liquidity:,.0f} M$")
-        print(f"Close time: {market.close_time if market.close_time else 'None'}")
-        print(f"Last updated: {market.last_updated_time}")
-        
-        print("\n=== Probabilities ===")
-        print(market.formatted_outcomes)
-        
-        print("\n=== Additional Data ===")
-        print(f"Resolution: {market.resolution}")
-        print(f"Resolution time: {market.resolution_time if market.resolution_time else 'None'}")
-        print(f"Tags: {', '.join(market.tags)}")
-        print(f"Group slugs: {', '.join(market.group_slugs)}")
-        print(f"Visibility: {market.visibility}")
-        
-        print("\n" + "="*80)
-
 
 async def main():
    #  try:
         async with ManifoldMarketClient(max_concurrent=10) as client:
             markets = await client.get_filtered_markets(
-                min_unique_bettors=100,
+                min_unique_bettors=50,
                 min_volume=500
             )
             print(f"Found {len(markets)} markets matching criteria")
             
             df = pd.DataFrame(markets) # ([market.__dict__ for market in markets])
             print(df.head())
-                
-    # except Exception as e:
-    #     print(f"Error in main: {e}")
+
 
 
 if __name__ == "__main__":

@@ -1,35 +1,32 @@
 # %%
-%load_ext autoreload
-%autoreload 2
+
 import os
 import dotenv
 from pathlib import Path
-from py_clob_client.client import ClobClient, TradeParams
-from py_clob_client.constants import POLYGON
-# Remove regex import if D is not used, or clarify its use.
-# from regex import D 
+# from py_clob_client.client import ClobClient, TradeParams # Not used in this version
+# from py_clob_client.constants import POLYGON # Not used in this version
 import requests
 from tqdm import tqdm
 from pprint import pprint
 import pandas as pd
-import numpy as np
-from openai import OpenAI
+# import numpy as np # Not explicitly used
+# from openai import OpenAI # Not used
 from functools import lru_cache
-from datetime import datetime, timedelta
+from datetime import datetime #, timedelta # timedelta not used
 import time
-import json # For parsing outcomes string
-from typing import List, Optional, Any, Dict # For type hinting
+import json
+from typing import List, Optional, Any, Dict
 from dataclasses import dataclass
 
-# %%
+from common_markets import PooledMarket, BaseMarket
 
-# Insert new Gamma API functions here
+# Load environment variables if .env file exists
+dotenv.load_dotenv()
+
 GAMMA_API_BASE_URL = "https://gamma-api.polymarket.com"
 
-# Dataclasses for structuring market data
-@lru_cache(maxsize=None) # To cache parsing of outcome strings if they repeat
+@lru_cache(maxsize=None)
 def parse_outcomes_string(outcomes_str: str) -> List[str]:
-    """Safely parses the outcomes string which is a JSON array."""
     if not outcomes_str or not isinstance(outcomes_str, str):
         return []
     try:
@@ -40,17 +37,15 @@ def parse_outcomes_string(outcomes_str: str) -> List[str]:
     except json.JSONDecodeError:
         return []
 
-def format_outcomes(outcomes: List[str], prices: Optional[List[float]] = None) -> str:
-    """Formats outcomes and their prices (as probabilities) into a readable string."""
+def format_outcomes_polymarket(outcomes: List[str], prices: Optional[List[float]] = None) -> str:
     if not outcomes:
         return "N/A"
-    if not prices:
+    if not prices or len(outcomes) != len(prices):
+        # print(f"Warning: Outcomes and prices length mismatch or prices missing. Outcomes: {outcomes}, Prices: {prices}")
         return "; ".join([f"{name}: N/A" for name in outcomes])
-    assert len(outcomes) == len(prices), f"Lengths of outcomes and prices must match, but got {outcomes} and {prices}"
-    return "; ".join([f"{name}: {(price * 100):.1f}% prob" for name, price in zip(outcomes, prices)])
+    return "; ".join([f"{name}: {(price * 100):.1f}% prob" if price is not None else f"{name}: N/A" for name, price in zip(outcomes, prices)])
 
 def safe_float(value: Any, default: float = 0.0) -> float:
-    """Converts a value to float, returning a default if conversion fails or value is None."""
     if value is None:
         return default
     try:
@@ -59,241 +54,271 @@ def safe_float(value: Any, default: float = 0.0) -> float:
         return default
 
 def safe_str(value: Any, default: str = "") -> str:
-    """Converts a value to str, returning a default if value is None."""
     if value is None:
         return default
     return str(value)
 
-def parse_datetime_optional(datetime_str: Optional[str]) -> Optional[datetime]:
-    """Parses an ISO format datetime string, returns None if input is None or invalid."""
-    if not datetime_str:
-        return None
-    try:
-        # Attempt to parse with or without milliseconds/Z
-        if '.' in datetime_str and 'Z' in datetime_str:
-            return datetime.fromisoformat(datetime_str.replace('Z', '+00:00'))
-        elif 'Z' in datetime_str: # No milliseconds
-             return datetime.strptime(datetime_str, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=None) # Make naive
-        return datetime.fromisoformat(datetime_str) # Should handle cases without Z as naive
-    except ValueError:
-        # print(f"Warning: Could not parse datetime string: {datetime_str}")
-        return None
-
 @dataclass
-class PolymarketMarket:
+class PolymarketMarket(BaseMarket):
     id: str
     question: str
     slug: str
     description: str
     outcomes: List[str]
-    outcome_prices: Optional[List[float]] # Prices corresponding to outcomes
+    outcome_prices: Optional[List[Optional[float]]] # Prices corresponding to outcomes, can have None
     formatted_outcomes: str
     url: str
-    total_volume: float # Changed from volume_24hr to represent total volume
-    liquidity: float # Primary liquidity metric (e.g., sum of AMM and CLOB)
+    total_volume: float
+    liquidity: float
     end_date: Optional[datetime]
     created_at: Optional[datetime]
     updated_at: Optional[datetime]
-    active: bool
-    closed: bool
+    active: bool # From API
+    closed: bool # From API, used for is_resolved
     resolution_source: Optional[str]
-    # Add other fields as necessary, simplifying from the original list
+    # Store raw API type if available for more accurate original_market_type
+    raw_market_type: Optional[str] = None 
 
     @classmethod
     def from_api_data(cls, data: Dict[str, Any]) -> "PolymarketMarket":
-        raw_outcomes = data.get("outcomes", "[]") # Default to empty JSON array string
+        raw_outcomes = data.get("outcomes", "[]")
         parsed_outcomes_list = parse_outcomes_string(raw_outcomes)
         
-        raw_outcome_prices = data.get("outcomePrices")
-        parsed_outcome_prices: Optional[List[float]] = None
+        raw_outcome_prices_payload = data.get("outcomePrices")
+        parsed_outcome_prices_list: List[Optional[float]] = []
 
-        if isinstance(raw_outcome_prices, str):
+        temp_prices_for_parsing = []
+        if isinstance(raw_outcome_prices_payload, str):
             try:
-                # Attempt to parse the string as a JSON list
-                potential_list = json.loads(raw_outcome_prices)
+                potential_list = json.loads(raw_outcome_prices_payload)
                 if isinstance(potential_list, list):
-                    raw_outcome_prices = potential_list # Now it's a list
-                else:
-                    # The string was valid JSON, but not a list
-                    raw_outcome_prices = [] 
+                    temp_prices_for_parsing = potential_list
             except json.JSONDecodeError:
-                # The string was not valid JSON
-                raw_outcome_prices = []
+                pass # Keep temp_prices_for_parsing empty
+        elif isinstance(raw_outcome_prices_payload, list):
+            temp_prices_for_parsing = raw_outcome_prices_payload
         
-        if isinstance(raw_outcome_prices, list):
-            parsed_outcome_prices = [safe_float(p) for p in raw_outcome_prices]
-        elif pd.isna(raw_outcome_prices) or raw_outcome_prices is None: # Handle explicit NaN or None
-             parsed_outcome_prices = [] 
-        else: # If it's something unexpected (not a string, not a list, not None/NaN)
-            parsed_outcome_prices = []
-
-        formatted_outcomes_str = format_outcomes(parsed_outcomes_list, parsed_outcome_prices)
+        # Ensure prices list matches outcomes length, padding with None if necessary
+        if temp_prices_for_parsing:
+            num_outcomes = len(parsed_outcomes_list)
+            parsed_outcome_prices_list = [(safe_float(p) if p is not None else None) for p in temp_prices_for_parsing[:num_outcomes]]
+            # Pad with None if API provided fewer prices than outcomes
+            if len(parsed_outcome_prices_list) < num_outcomes:
+                parsed_outcome_prices_list.extend([None] * (num_outcomes - len(parsed_outcome_prices_list)))
+        else: # No prices provided or parse failed, fill with Nones matching outcomes length
+            parsed_outcome_prices_list = [None] * len(parsed_outcomes_list)
+            
+        formatted_outcomes_str = format_outcomes_polymarket(parsed_outcomes_list, parsed_outcome_prices_list)
         
-        # Simplify volume: prioritize 'volume' (total), then 'volumeNum'
         total_volume = safe_float(data.get("volume"))
-        if total_volume == 0.0: # if 'volume' is not present or zero, try 'volumeNum'
+        if total_volume == 0.0:
             total_volume = safe_float(data.get("volumeNum"))
-        # 'volume24hr' is no longer the primary source for this field.
 
-        # Simplify liquidity: sum of AMM and CLOB, or use 'liquidity' if available
         liquidity = safe_float(data.get("liquidityAmm")) + safe_float(data.get("liquidityClob"))
-        if liquidity == 0.0: # If AMM and CLOB are zero or not present, try 'liquidity'
+        if liquidity == 0.0:
             liquidity = safe_float(data.get("liquidity"))
-        if liquidity == 0.0: # if 'liquidity' is not present, try 'liquidityNum'
+        if liquidity == 0.0:
             liquidity = safe_float(data.get("liquidityNum"))
 
-
-        slug = safe_str(data.get("slug"))
-        market_url = f"https://polymarket.com/event/{slug}" if slug else ""
+        slug_val = safe_str(data.get("slug"))
+        market_url = f"https://polymarket.com/event/{slug_val}" if slug_val else ""
 
         return cls(
-            id="polymarket_"+safe_str(data.get("id")),
+            id="polymarket_" + safe_str(data.get("id")),
             question=safe_str(data.get("question")),
-            slug=slug,
+            slug=slug_val,
             description=safe_str(data.get("description")),
             outcomes=parsed_outcomes_list,
-            outcome_prices=parsed_outcome_prices if parsed_outcome_prices else None,
+            outcome_prices=parsed_outcome_prices_list if any(p is not None for p in parsed_outcome_prices_list) else None,
             formatted_outcomes=formatted_outcomes_str,
             url=market_url,
-            total_volume=total_volume, # Updated field name and value
+            total_volume=total_volume,
             liquidity=liquidity,
-            end_date=parse_datetime_optional(data.get("endDate")),
-            created_at=parse_datetime_optional(data.get("createdAt")),
-            updated_at=parse_datetime_optional(data.get("updatedAt")),
-            active=bool(data.get("active", False)), # Default to False if not present
-            closed=bool(data.get("closed", False)), # Default to False if not present
+            end_date=BaseMarket.parse_datetime_flexible(data.get("endDate")),
+            created_at=BaseMarket.parse_datetime_flexible(data.get("createdAt")),
+            updated_at=BaseMarket.parse_datetime_flexible(data.get("updatedAt")),
+            active=bool(data.get("active", False)),
+            closed=bool(data.get("closed", False)),
             resolution_source=safe_str(data.get("resolutionSource")) if data.get("resolutionSource") else None,
+            raw_market_type=safe_str(data.get("category")) # Assuming 'category' might be 'Sports', 'Politics' etc. or sometimes 'Binary'
         )
 
-@lru_cache(maxsize=1)
-def fetch_all_markets_gamma(return_active=True, cache_key=None, max_requests=200):
-    """
-    Fetch all markets from Polymarket Gamma API and parse them into PolymarketMarket objects.
+    def to_pooled_market(self) -> PooledMarket:
+        # Determine original_market_type based on raw_market_type or outcomes
+        market_type = self.raw_market_type
+        if not market_type:
+            if len(self.outcomes) == 2:
+                # Basic check for common binary outcome names (case-insensitive)
+                norm_outcomes = [o.lower() for o in self.outcomes]
+                if ("yes" in norm_outcomes and "no" in norm_outcomes) or \
+                   ("true" in norm_outcomes and "false" in norm_outcomes):
+                    market_type = "BINARY"
+                else:
+                    market_type = "CATEGORICAL" # Or other generic term for 2-outcome non-binary
+            elif len(self.outcomes) > 2:
+                market_type = "CATEGORICAL" # Multiple choice
+            else:
+                market_type = "UNKNOWN" # Or None
 
-    Args:
-        return_active: Whether to return only active markets (where closed is False).
-        cache_key: Optional cache key for invalidation (timestamp), used by lru_cache.
-        limit_per_page: Number of markets to fetch per API call.
-        max_requests: Maximum number of API requests to prevent infinite loops.
-    """
-    LIMIT_PER_PAGE = 500  # heuristically found to be the maximum that can be fetched in a single request
-    all_market_objects: List[PolymarketMarket] = []
-    offset = 0
-    
-    print("Fetching markets from Gamma API...")
-    pbar = tqdm(range(max_requests))
-    for i in pbar: 
-        params = {"limit": LIMIT_PER_PAGE, "offset": offset}
+        return PooledMarket(
+            id=self.id,
+            question=self.question,
+            outcomes=self.outcomes,
+            outcome_probabilities=self.outcome_prices if self.outcome_prices else [None]*len(self.outcomes),
+            formatted_outcomes=self.formatted_outcomes,
+            url=self.url,
+            published_at=self.created_at, # Use created_at as published_at
+            source_platform="Polymarket",
+            volume=self.total_volume,
+            n_forecasters=None,  # Not directly available in the provided Polymarket API data struct
+            comments_count=None, # Not directly available
+            original_market_type=market_type,
+            is_resolved=self.closed,
+            raw_market_data=self
+        )
+
+class PolymarketGammaScraper:
+    BASE_URL = GAMMA_API_BASE_URL
+
+    def __init__(self, timeout: int = 20):
+        self.timeout = timeout
+
+    def _fetch_page_data(self, limit: int, offset: int) -> List[Dict[str, Any]]:
+        params = {"limit": limit, "offset": offset}
         try:
-            response = requests.get(f"{GAMMA_API_BASE_URL}/markets", params=params, timeout=20)
+            response = requests.get(f"{self.BASE_URL}/markets", params=params, timeout=self.timeout)
             response.raise_for_status()
-            raw_data_list = response.json() # List of market dictionaries
-            
-            if not raw_data_list: 
+            return response.json()
+        except requests.exceptions.RequestException as e:
+            print(f"Error fetching markets from Gamma API (offset {offset}): {e}")
+            return []
+        except json.JSONDecodeError as e:
+            print(f"Error decoding JSON from Gamma API (offset {offset}): {e}")
+            return []
+
+    # @lru_cache(maxsize=1) # Caching should be time-based for dynamic data
+    def _fetch_all_raw_markets(self, max_requests: int = 200, limit_per_page: int = 100) -> List[Dict[str, Any]]:
+        all_raw_market_data: List[Dict[str, Any]] = []
+        offset = 0
+        
+        # print("Fetching all raw market data from Gamma API...")
+        for i in tqdm(range(max_requests), desc="Fetching Polymarket pages"):
+            raw_data_list = self._fetch_page_data(limit=limit_per_page, offset=offset)
+            if not raw_data_list:
                 print(f"No more markets to fetch after {i+1} requests (offset {offset}).")
                 break
-            
-            # Parse each market dictionary into a PolymarketMarket object
-            for market_data in raw_data_list:
-                try:
-                    market_obj = PolymarketMarket.from_api_data(market_data)
-                    if return_active:
-                        if not market_obj.closed: # Assuming 'active' also implies not closed, but 'closed' is more explicit for filtering resolved markets
-                            all_market_objects.append(market_obj)
-                    else:
-                        all_market_objects.append(market_obj)
-                except Exception as e:
-                    print(f"Error parsing market data for market ID {market_data.get('id', 'Unknown')}: {e}")
-                    # Optionally, append a partially parsed object or skip
-            
-            if len(raw_data_list) < LIMIT_PER_PAGE: 
+            all_raw_market_data.extend(raw_data_list)
+            if len(raw_data_list) < limit_per_page:
                 print(f"Fetched last page of markets ({len(raw_data_list)} items) in request {i+1}.")
                 break
-            # print(f"Fetching markets from Gamma API: {i+1} of {max_requests}; offset {offset}; fetched {len(all_market_objects)} relevant markets")
-            offset += LIMIT_PER_PAGE
-        except requests.exceptions.RequestException as e:
-            print(f"Error fetching markets from Gamma API on request {i+1} (offset {offset}): {e}")
-            break
-        except ValueError as e: # JSONDecodeError inherits from ValueError
-            print(f"Error decoding JSON from Gamma API on request {i+1} (offset {offset}): {e}")
-            break
-        if i == max_requests - 1:
-            print(f"Reached max_requests limit ({max_requests}) for Gamma API.")
+            offset += limit_per_page
+            if i == max_requests - 1:
+                print(f"Reached max_requests limit ({max_requests}) for Gamma API.")
+        return all_raw_market_data
+
+    def fetch_markets(self, only_open: bool = True, max_requests: int = 200, limit_per_page: int = 100) -> List[PolymarketMarket]:
+        """
+        Fetch markets from Polymarket Gamma API and parse them into PolymarketMarket objects.
+
+        Args:
+            only_open: Whether to return only open markets (where closed is False).
+            max_requests: Maximum number of API requests to prevent infinite loops.
+            limit_per_page: Number of markets to fetch per API call.
+        Returns:
+            A list of PolymarketMarket objects.
+        """
+        raw_markets_data = self._fetch_all_raw_markets(max_requests=max_requests, limit_per_page=limit_per_page)
         
-        pbar.set_description(f"Fetched {len(all_market_objects)} markets")
+        parsed_markets: List[PolymarketMarket] = []
+        if not raw_markets_data:
+            # print("No raw market data fetched from Gamma API.")
+            return []
 
-    if not all_market_objects:
-        print("No market data fetched or parsed from Gamma API.")
-        return pd.DataFrame(), None # Return empty DataFrame
+        for market_data_dict in raw_markets_data:
+            try:
+                market_obj = PolymarketMarket.from_api_data(market_data_dict)
+                if only_open:
+                    if not market_obj.closed:
+                        parsed_markets.append(market_obj)
+                else:
+                    parsed_markets.append(market_obj)
+            except Exception as e:
+                print(f"Error parsing market data for market ID {market_data_dict.get('id', 'Unknown')}: {e}")
+        
+        # print(f"Successfully parsed {len(parsed_markets)} markets.")
+        return parsed_markets
 
-    # Create DataFrame from the list of dataclass objects
-    # This ensures that columns are derived from dataclass fields and values are direct attributes
-    df = pd.DataFrame([market_obj.__dict__ for market_obj in all_market_objects])
-            
-    return df # Second element is None for consistency
+_last_fetch_time = None
+_cached_markets = None
+_CACHE_DURATION_MINUTES = 30
 
-def get_markets_with_cache_gamma(return_active=False, cache_duration_minutes=30, max_requests=500):
+def get_markets_with_cache_gamma(scraper: PolymarketGammaScraper, only_open: bool = True, max_requests: int = 200, limit_per_page: int = 500) -> List[PolymarketMarket]:
     """
-    Get markets from Gamma API with caching, automatically invalidating cache after specified duration.
-    
-    Args:
-        return_active: Whether to return only active markets.
-        cache_duration_minutes: How long to keep the cache valid.
-        limit_per_page: Number of markets to fetch per API call for fetch_all_markets_gamma.
-        max_requests: Maximum number of API requests for fetch_all_markets_gamma.
+    Get markets from Gamma API with simple time-based caching.
     """
-    
+    global _last_fetch_time, _cached_markets
     current_time = datetime.now()
-    cache_key_time = current_time.replace(
-        minute=current_time.minute - (current_time.minute % cache_duration_minutes),
-        second=0,
-        microsecond=0
-    )
+
+    if _cached_markets is not None and _last_fetch_time is not None:
+        elapsed_minutes = (current_time - _last_fetch_time).total_seconds() / 60
+        if elapsed_minutes < _CACHE_DURATION_MINUTES:
+            # print(f"Returning cached Polymarket data (fetched {elapsed_minutes:.1f} minutes ago).")
+            # Apply filtering to cached data if needed, e.g. only_open might change
+            if only_open:
+                return [m for m in _cached_markets if not m.closed]
+            else:
+                return _cached_markets
+
+    # print(f"Cache expired or not available. Fetching fresh Polymarket data...")
+    fresh_markets = scraper.fetch_markets(only_open=False, max_requests=max_requests, limit_per_page=limit_per_page) # Fetch all, then filter
+    _cached_markets = fresh_markets
+    _last_fetch_time = current_time
     
-    return fetch_all_markets_gamma(
-        return_active=return_active, 
-        cache_key=cache_key_time, 
-        max_requests=max_requests
-    )
+    if only_open:
+        return [m for m in fresh_markets if not m.closed]
+    else:
+        return fresh_markets
 
-# %%
-# Initialize client and fetch markets
-start_time = time.time()
-active_df = get_markets_with_cache_gamma(return_active=True, max_requests=150)
-end_time = time.time()
-print(f"Fetching markets from Gamma API took {end_time - start_time:.2f} seconds")
-print(f"Found {len(active_df)} active markets.")
-# Now 'active_df' holds the active markets fetched from the Gamma API.
-# The rest of your script can proceed using this 'active_df'.
 
-if not active_df.empty:
-    print("\nSample of processed market data (first market):")
-    # Pretty print the first market's details if available
-    # Accessing via .iloc[0].to_dict() if you want to see it as a dict
-    # Or directly access attributes if you have the Pydantic model instance
-    # For DataFrame, to see the structure:
-    pprint(active_df.iloc[0].to_dict())
+if __name__ == "__main__":
+    print("Starting PolymarketGammaScraper example...")
+    scraper = PolymarketGammaScraper()
+
+    # Fetch active markets using the cached utility function
+    fetch_active = True
+    max_api_requests = 600 # Limit for example speed
+    print(f"Fetching {'active' if fetch_active else 'all'} markets from Polymarket (max_requests={max_api_requests})...")
+    start_time = time.time()
     
-    print("\nColumns in the DataFrame:")
-    print(sorted(list(active_df.columns)))
-
-    print("\nExample of formatted outcomes for the first market (if available):")
-    if 'formatted_outcomes' in active_df.columns and len(active_df) > 0:
-        print(active_df.iloc[0]['formatted_outcomes'])
+    # Use the scraper's fetch_markets method directly for non-cached or specific calls
+    # polymarket_list = scraper.fetch_markets(only_open=fetch_active, max_requests=max_api_requests)
     
-    print("\nExample of URL for the first market (if available):")
-    if 'url' in active_df.columns and len(active_df) > 0:
-        print(active_df.iloc[0]['url'])
-else:
-    print("No active markets fetched or DataFrame is empty.")
+    # Or use the caching wrapper
+    polymarket_list = get_markets_with_cache_gamma(scraper, only_open=fetch_active, max_requests=max_api_requests)
+    
+    end_time = time.time()
+
+    print(f"Fetching took {end_time - start_time:.2f} seconds.")
+    print(f"Fetched {len(polymarket_list)} Polymarket markets.")
+
+    if polymarket_list:
+        # Convert to PooledMarket format
+        pooled_markets = [market.to_pooled_market() for market in polymarket_list]
+        print(f"Converted {len(pooled_markets)} markets to PooledMarket format.")
+
+        if pooled_markets:
+            print("Details of the first pooled market (Polymarket):")
+            pprint(pooled_markets[0].__dict__)
+
+            # Optional: Create a DataFrame
+            # df_pooled = pd.DataFrame([pm.__dict__ for pm in pooled_markets])
+            # print(f"Created DataFrame with {len(df_pooled)} pooled Polymarket markets. Columns: {df_pooled.columns.tolist()}")
+            # print(df_pooled.head())
+            # df_pooled.to_csv("polymarket_gamma_pooled_markets.csv", index=False)
+            # print("Saved pooled Polymarket markets to polymarket_gamma_pooled_markets.csv")
+        else:
+            print("No Polymarket markets were successfully converted to PooledMarket format.")
+    else:
+        print("No markets were fetched from Polymarket.")
 
 
-
-# %%
-active_df.columns
-# %%
-active_df.formatted_outcomes
-# %%
-active_df.outcome_prices.apply(lambda x: max(x) if x else None).hist()
-
-# %%
