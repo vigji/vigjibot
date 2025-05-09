@@ -16,13 +16,13 @@ QUESTIONS_URL = f"{BASE_URL}/questions"
 LOGIN_URL = f"{BASE_URL}/users/sign_in"
 
 @dataclass
-class Answer:
+class GJOpenAnswer:
     name: str
     probability: Optional[float] = None
     # id: Optional[int] = None # Uncomment if you plan to use it
 
 @dataclass
-class Market:
+class GJOpenMarket:
     id: int
     name: str
     published_at: str
@@ -31,7 +31,7 @@ class Market:
     description: str
     binary: bool
     continuous_scored: bool
-    answers: List[Answer]
+    answers: List[GJOpenAnswer]
     formatted_answers: str
     url: str
     q_type: str
@@ -43,7 +43,7 @@ class Market:
 
         answers_data = q_props.get("answers", [])
         answers = [
-            Answer(
+            GJOpenAnswer(
                 name=a.get("name"),
                 probability=a.get("probability"),
                 # id=a.get("id")
@@ -53,7 +53,7 @@ class Market:
         formatted_answers = "; ".join([f"{a.name.strip()}: {a.probability*100}%" for a in answers])
         formatted_answers = formatted_answers.replace("\n", "").replace("\r", "")
         return cls(
-            id=q_props.get("id"),
+            id="gjopen_"+str(q_props.get("id")),
             name=q_props.get("name", ""),
             published_at=q_props.get("published_at"),
             predictors_count=q_props.get("predictors_count"),

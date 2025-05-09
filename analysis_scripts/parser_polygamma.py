@@ -147,7 +147,7 @@ class PolymarketMarket:
         market_url = f"https://polymarket.com/event/{slug}" if slug else ""
 
         return cls(
-            id=safe_str(data.get("id")),
+            id="polymarket_"+safe_str(data.get("id")),
             question=safe_str(data.get("question")),
             slug=slug,
             description=safe_str(data.get("description")),
@@ -232,7 +232,7 @@ def fetch_all_markets_gamma(return_active=True, cache_key=None, max_requests=200
             
     return df # Second element is None for consistency
 
-def get_markets_with_cache_gamma(return_active=True, cache_duration_minutes=30, max_requests=500):
+def get_markets_with_cache_gamma(return_active=False, cache_duration_minutes=30, max_requests=500):
     """
     Get markets from Gamma API with caching, automatically invalidating cache after specified duration.
     
