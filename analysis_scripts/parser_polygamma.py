@@ -47,7 +47,7 @@ def format_outcomes(outcomes: List[str], prices: Optional[List[float]] = None) -
     if not prices:
         return "; ".join([f"{name}: N/A" for name in outcomes])
     assert len(outcomes) == len(prices), f"Lengths of outcomes and prices must match, but got {outcomes} and {prices}"
-    return "; ".join([f"{name}: {round(price * 100)}% prob" for name, price in zip(outcomes, prices)])
+    return "; ".join([f"{name}: {(price * 100):.1f}% prob" for name, price in zip(outcomes, prices)])
 
 def safe_float(value: Any, default: float = 0.0) -> float:
     """Converts a value to float, returning a default if conversion fails or value is None."""

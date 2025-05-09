@@ -10,6 +10,7 @@ from typing import List, Optional
 import os
 import pandas as pd
 import time
+from tqdm import tqdm
 
 BASE_URL = "https://www.gjopen.com"
 QUESTIONS_URL = f"{BASE_URL}/questions"
@@ -24,15 +25,16 @@ class GJOpenAnswer:
 @dataclass
 class GJOpenMarket:
     id: int
-    name: str
+    question: str
     published_at: str
     predictors_count: int
     comments_count: int
     description: str
     binary: bool
     continuous_scored: bool
-    answers: List[GJOpenAnswer]
-    formatted_answers: str
+    outcomes: List[GJOpenAnswer]
+
+    formatted_outcomes: str
     url: str
     q_type: str
 
@@ -41,30 +43,30 @@ class GJOpenMarket:
         if not q_props:
             return None
 
-        answers_data = q_props.get("answers", [])
-        answers = [
+        outcomes_data = q_props.get("answers", [])
+        outcomes = [
             GJOpenAnswer(
                 name=a.get("name"),
                 probability=a.get("probability"),
                 # id=a.get("id")
             )
-            for a in answers_data
+            for a in outcomes_data
         ]
-        formatted_answers = "; ".join([f"{a.name.strip()}: {a.probability*100}%" for a in answers])
-        formatted_answers = formatted_answers.replace("\n", "").replace("\r", "")
+        formatted_outcomes = "; ".join([f"{a.name.strip()}: {a.probability*100}%" for a in outcomes])
+        formatted_outcomes = formatted_outcomes.replace("\n", "").replace("\r", "")
         return cls(
             id="gjopen_"+str(q_props.get("id")),
-            name=q_props.get("name", ""),
+            question=q_props.get("name", ""),
             published_at=q_props.get("published_at"),
             predictors_count=q_props.get("predictors_count"),
             comments_count=q_props.get("comments_count"),
             description=q_props.get("description", ""),
             binary=q_props.get("binary?"),
             continuous_scored=q_props.get("continuous_scored?"),
-            answers=answers,
+            outcomes=outcomes,
             url=question_url,
             q_type=q_props.get("type"),
-            formatted_answers=formatted_answers
+            formatted_outcomes=formatted_outcomes
         )
 
 class GoodJudgmentOpenScraper:
@@ -97,12 +99,10 @@ class GoodJudgmentOpenScraper:
         elif env_email and env_password:
             self.email = env_email
             self.password = env_password
-            # print("Using credentials from environment variables.")
         else:
             creds = self._load_credentials_from_file()
             self.email = creds["email"]
             self.password = creds["password"]
-            # print(f"Using credentials from {Path.home() / '.gjopen_credentials.json'}.")
         
         self._login()
 
@@ -161,7 +161,7 @@ class GoodJudgmentOpenScraper:
         links = soup.find_all("a", href=re.compile(r"/questions/\d+"))
         return [urljoin(self.BASE_URL, link["href"]) for link in links]
 
-    def _fetch_market_data_for_url(self, question_url: str) -> Optional[Market]:
+    def _fetch_market_data_for_url(self, question_url: str) -> Optional[GJOpenMarket]:
         """Fetches and parses market data for a single question URL."""
         try:
             resp = self.session.get(question_url, timeout=10)
@@ -180,16 +180,13 @@ class GoodJudgmentOpenScraper:
                 props_str = react_div["data-react-props"]
                 props = json.loads(props_str)
             except json.JSONDecodeError:
-                # print(f"    Warning: Failed to parse JSON props from {question_url}")
                 return None
 
             q_props = props.get("question", {})
             if not q_props:
-                # print(f"    No 'question' data found in props for {question_url}")
                 return None
-            
-            
-            market_data = Market.from_gjopen_question_data(q_props, question_url)
+              
+            market_data = GJOpenMarket.from_gjopen_question_data(q_props, question_url)
             
             return market_data
         else:
@@ -209,64 +206,43 @@ class GoodJudgmentOpenScraper:
         Returns:
             A pandas DataFrame containing the scraped market data.
         """
-        all_markets_data: List[Market] = []
-        
-        def _process_page(page_num: int) -> bool:
-            """Helper to process a single page of market data. Returns False if no links found."""
-            print(f"Fetching page {page_num}...")
+        PAUSE_AFTER_PAGE = 0.6
+        PAUSE_AFTER_MARKET = 0.7
+        all_markets_data: List[GJOpenMarket] = []
+
+        if num_pages_to_scrape is None:
+            num_pages_to_scrape = 15
+
+        for page_num in tqdm(range(1, num_pages_to_scrape + 1), desc="Scraping pages"):
+            # market_objs_on_page = _process_page(page_num)
             question_links = self._fetch_question_links_for_page(page_num)
             if not question_links:
                 print(f"No question links found on page {page_num}.")
                 return False
                 
-            # print(f"Found {len(question_links)} question links on page {page_num}")
-            market_objs = []
+            market_objs_on_page = []
             for i, link in enumerate(question_links):
                 # print(f"  Scraping {link}")
                 try:
                     market_obj = self._fetch_market_data_for_url(link)
                     if market_obj:
-                        market_objs.append(market_obj)
-                    #else:
-                        # print(f"    No data retrieved for {link}")
+                        market_objs_on_page.append(market_obj)
+
                 except Exception as e:
                     print(f"    Failed to process {link}: {e}")
                 finally:
                     if i < len(question_links) - 1: # Don't sleep after the last item
-                        time.sleep(.7) # ADDED: Sleep after each individual market scrape
-            return market_objs
-
-        if num_pages_to_scrape is None:
-            # print("Attempting to scrape all available pages...")
-            current_page = 1
-            while True:
-                market_objs_on_page = _process_page(current_page)
-                if not market_objs_on_page:
-                    # print("Concluding scraping.")
-                    break
-                current_page += 1
-                all_markets_data.extend(market_objs_on_page)
-                time.sleep(1)  # ADDED: Sleep after processing a page
-                if current_page > 200:  # Safety break for "all pages" mode
-                    print("Reached page 200 in 'all pages' mode, stopping to prevent excessive requests.")
-                    break
-        else:
-            #print(f"Attempting to scrape {num_pages_to_scrape} page(s)...")
-            for page_num in range(1, num_pages_to_scrape + 1):
-                market_objs_on_page = _process_page(page_num)
-                if not market_objs_on_page:
-                    print("Stopping early.")
-                    break
-                all_markets_data.extend(market_objs_on_page)
-                if page_num < num_pages_to_scrape: # Don't sleep after the last page
-                    time.sleep(0.6) # ADDED: Sleep after processing a page
+                        time.sleep(PAUSE_AFTER_MARKET)
+            if not market_objs_on_page:
+                print("Stopping early.")
+                break
+            all_markets_data.extend(market_objs_on_page)
+            if page_num < num_pages_to_scrape: # Don't sleep after the last page
+                time.sleep(PAUSE_AFTER_PAGE)
 
         if not all_markets_data:
-            # print("No market data was successfully scraped.")
             return pd.DataFrame()
 
-        # Convert list of dataclass objects to DataFrame
-        # Using asdict for better compatibility with nested structures if any
         df = pd.DataFrame([market_obj.__dict__ for market_obj in all_markets_data])
         return df
 
@@ -287,7 +263,7 @@ if __name__ == "__main__":
     scraper = GoodJudgmentOpenScraper()
 
     # Scrape a few pages (e.g., 2)
-    num_pages = None
+    num_pages = 5
     print(f"\nScraping the first {num_pages} page(s) of markets sorted by predictor count...")
     start_time = time.time()
     markets_df = scraper.scrape_markets(num_pages_to_scrape=num_pages)
