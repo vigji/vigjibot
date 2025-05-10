@@ -25,15 +25,6 @@ class PredictItContract:
             val = self.best_buy_yes_cost - self.best_sell_yes_cost
             return val if val >= 0 else None # Spread shouldn't be negative
         return None
-    
-    # Liquidity calculation can be complex, keeping it simple or removing if not robust
-    # For now, commenting out as its definition can vary and might not be directly useful for PooledMarket
-    # @property
-    # def liquidity(self) -> float:
-    #     spread_val = self.spread
-    #     if spread_val is not None and spread_val > 0:
-    #         return 1.0 / spread_val
-    #     return 0.0
 
     @classmethod
     def from_api_data(cls, data: Dict[str, Any]) -> "PredictItContract":

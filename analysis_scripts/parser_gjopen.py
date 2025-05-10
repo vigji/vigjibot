@@ -12,7 +12,7 @@ import pandas as pd
 import time
 from tqdm import tqdm
 
-from common_markets import PooledMarket, BaseMarket, parse_datetime_flexible, BaseScraper
+from common_markets import PooledMarket, BaseMarket, BaseScraper
 
 BASE_URL = "https://www.gjopen.com"
 QUESTIONS_URL = f"{BASE_URL}/questions"
@@ -87,7 +87,7 @@ class GJOpenMarket(BaseMarket):
             outcome_probabilities=outcome_probs,
             formatted_outcomes=self.formatted_outcomes,
             url=self.url,
-            published_at=parse_datetime_flexible(self.published_at),
+            published_at=BaseMarket.parse_datetime_flexible(self.published_at),
             source_platform="GJOpen",
             volume=None,  # Not available directly from GJOpen API structure shown
             n_forecasters=self.predictors_count,

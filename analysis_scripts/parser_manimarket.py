@@ -30,55 +30,6 @@ class ManifoldAnswer:
 
 
 @dataclass
-class MarketMetadata:
-    """Base class with common market fields"""
-    id: str
-    question: str
-    outcome_type: str
-    created_time: datetime
-    creator_name: str
-    creator_username: str
-    slug: str
-    volume: float
-    unique_bettor_count: int
-    total_liquidity: float
-    close_time: Optional[datetime]
-    last_updated_time: datetime
-    tags: List[str]
-    group_slugs: List[str]
-    visibility: str
-    resolution: Optional[str]
-    resolution_time: Optional[datetime]
-
-    @classmethod
-    def from_api_data(cls, data: Dict[str, Any]) -> "MarketMetadata":
-        """Returns a dict of metadata fields from API data"""
-        return cls(
-            id="manifold_" + data["id"],
-            question=data["question"],
-            outcome_type=data["outcomeType"],
-            created_time=datetime.fromtimestamp(data["createdTime"] / 1000),
-            creator_name=data["creatorName"],
-            creator_username=data["creatorUsername"],
-            slug=data["slug"],
-            volume=data.get("volume", 0),
-            unique_bettor_count=data.get("uniqueBettorCount", 0),
-            total_liquidity=data.get("totalLiquidity", 0),
-            close_time=datetime.fromtimestamp(data["closeTime"] / 1000)
-            if data.get("closeTime")
-            else None,
-            last_updated_time=datetime.fromtimestamp(data["lastUpdatedTime"] / 1000),
-            tags=data.get("tags", []),
-            group_slugs=data.get("groupSlugs", []),
-            visibility=data.get("visibility", "public"),
-            resolution=data.get("resolution"),
-            resolution_time=datetime.fromtimestamp(data["resolutionTime"] / 1000)
-            if data.get("resolutionTime")
-            else None,
-        )
-
-
-@dataclass
 class ManifoldMarket:
     """Unified class for Manifold markets, handling different outcome types."""
 
@@ -125,7 +76,7 @@ class ManifoldMarket:
     @classmethod
     def from_api_data(cls, data: Dict[str, Any]) -> Optional["ManifoldMarket"]:
         metadata = MarketMetadata.from_api_data(data)
-        outcome_type = metadata.outcome_type
+        outcome_type = data["outcomeType"]
 
         outcomes = []
         outcome_prices = []
@@ -161,7 +112,7 @@ class ManifoldMarket:
         return cls(
             id="manifold_" + data["id"],
             question=data["question"],
-            outcome_type=data["outcomeType"],
+            outcome_type=outcome_type,
             created_time=datetime.fromtimestamp(data["createdTime"] / 1000),
             creator_name=data["creatorName"],
             creator_username=data["creatorUsername"],
