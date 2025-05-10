@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from abc import ABC, abstractmethod
 import pandas as pd
 from tqdm import tqdm
+from common_markets import PooledMarket, BaseMarket, BaseScraper
 
 
 @dataclass
@@ -111,10 +112,10 @@ class ManifoldMarket:
     answers: Optional[List[ManifoldAnswer]] = None
 
     def get_url(self) -> str:
-        return f"https://manifold.markets/{self.metadata.slug}"
+        return f"https://manifold.markets/{self.creator_username}/{self.slug}"
 
     def __str__(self) -> str:
-        return f"{self.metadata.question} ({self.metadata.outcome_type})"
+        return f"{self.question} ({self.outcome_type})"
 
     @staticmethod
     def _format_outcomes(outcomes: List[str], prices: List[float]) -> str:
@@ -190,14 +191,38 @@ class ManifoldMarket:
             answers=answers_obj,
         )
 
+    def to_pooled_market(self) -> PooledMarket:
+        is_res = bool(self.resolution and self.resolution != "MKT")
 
-class ManifoldMarketClient:
-    def __init__(self, max_concurrent: int = 5):
+        return PooledMarket(
+            id=self.id,
+            question=self.question,
+            outcomes=self.outcomes,
+            outcome_probabilities=self.outcome_prices,
+            formatted_outcomes=self.formatted_outcomes,
+            url=f"https://manifold.markets/{self.creator_username}/{self.slug}",
+            published_at=self.created_time,
+            source_platform="Manifold",
+            volume=self.volume,
+            n_forecasters=self.unique_bettor_count,
+            comments_count=None,
+            original_market_type=self.outcome_type,
+            is_resolved=is_res,
+            raw_market_data=self
+        )
+
+
+class ManifoldScraper(BaseScraper):
+    def __init__(self, max_concurrent: int = 5, api_key: Optional[str] = None):
         self.max_concurrent = max_concurrent
         self.session: Optional[aiohttp.ClientSession] = None
+        self.api_key = api_key
+        self.headers = {}
+        if self.api_key:
+            self.headers["Authorization"] = f"Key {self.api_key}"
  
     async def __aenter__(self):
-        self.session = aiohttp.ClientSession()
+        self.session = aiohttp.ClientSession(headers=self.headers)
         return self
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
@@ -213,154 +238,184 @@ class ManifoldMarketClient:
             print(f"Error creating market {data.get('id')}: {e}")
             return None
 
-    async def _get_open_markets(self, limit: int = 1000, max_pages: int = 100) -> List[Dict[str, Any]]:
-        """Fetch open markets from API."""
+    async def _fetch_raw_markets_list(self, limit: int = 1000, before: Optional[str] = None, only_open: bool = True) -> List[Dict[str, Any]]:
+        """Fetch a list of markets from API, with optional pagination and open status filter."""
         base_url = "https://api.manifold.markets/v0/markets"
-        params = {
+        params: Dict[str, Any] = {
             "limit": limit,
             "sort": "created-time",
             "order": "desc"
         }
+        if before:
+            params["before"] = before
         
-        all_markets = []
-        pbar = tqdm(range(0, limit, max_pages), desc=f"Fetched {len(all_markets)} open markets")
+        all_markets_batch = []
         try:
-            for i in pbar:
-                async with self.session.get(base_url, params=params) as response:
-                    response.raise_for_status()
-                    markets = await response.json()
-                    if not markets:
-                        break
-                        
-                    # Filter out resolved markets
-                    open_markets = [m for m in markets if not m.get("isResolved", False)]
-                    all_markets.extend(open_markets)
-                    pbar.set_description(f"Fetched {len(all_markets)} open markets")
-                    
-                    # Get the ID of the last market for pagination
-                    if len(markets) < limit:
-                        break
-                    params["before"] = markets[-1]["id"]
+            async with self.session.get(base_url, params=params, headers=self.headers) as response:
+                response.raise_for_status()
+                markets_page = await response.json()
+                if not markets_page:
+                    return [] # No more markets
+                
+                if only_open:
+                    all_markets_batch = [m for m in markets_page if not m.get("isResolved", False)]
+                else:
+                    all_markets_batch = markets_page
                     
         except aiohttp.ClientError as e:
-            print(f"Error fetching open markets: {e}")
+            print(f"Error fetching markets list: {e}")
             return []
-            
-        print(f"Total open markets found: {len(all_markets)}")
-        return all_markets
+        return all_markets_batch
 
     async def _get_market_details(self, market_id: str) -> Optional[Dict[str, Any]]:
         """Fetch details for a specific market."""
-        base_url = f"https://api.manifold.markets/v0/market/{market_id.replace('manifold_', '')}"
+        # Ensure we use the original ID for the API call
+        original_id = market_id.replace("manifold_", "")
+        base_url = f"https://api.manifold.markets/v0/market/{original_id}"
         try:
-            async with self.session.get(base_url) as response:
+            async with self.session.get(base_url, headers=self.headers) as response:
                 response.raise_for_status()
                 return await response.json()
         except aiohttp.ClientError as e:
-            print(f"Error fetching details for market {market_id}: {e}")
+            print(f"Error fetching details for market {market_id} (original_id: {original_id}): {e}")
             return None
 
-    async def _process_market(self, market_data: Dict[str, Any], min_unique_bettors: int, min_volume: float) -> Optional[ManifoldMarket]:
-        """Process a single market's data."""
-        if market_data.get("uniqueBettorCount", 0) < min_unique_bettors:
-            return None
-        if market_data.get("volume", 0) < min_volume:
-            return None
-            
-        full_data = await self._get_market_details(market_data["id"])
-        if not full_data:
-            return None
-            
-        return self._create_market(full_data)
-
-    async def get_filtered_markets(
+    async def fetch_markets(
         self,
-        min_unique_bettors: int = 20,
+        only_open: bool = True,
+        limit: int = 1000,
+        max_pages_to_fetch: int = 10,
+        min_unique_bettors: int = 0,
         min_volume: float = 0,
-        limit: int = 1000
+        **kwargs: Any
     ) -> List[ManifoldMarket]:
         """Get filtered markets that meet the criteria."""
-        # First get all open markets
-        raw_markets = await self._get_open_markets(limit)
-        print(f"Total open markets fetched: {len(raw_markets)}")
-        if not raw_markets:
+        if not self.session or self.session.closed:
+            self.session = aiohttp.ClientSession(headers=self.headers)
+
+        raw_markets_list_paginated: List[Dict[str, Any]] = []
+        last_market_id: Optional[str] = None
+        markets_fetched_count = 0
+
+        pbar_overall = tqdm(total=limit, desc=f"Fetching Manifold markets (aiming for {limit})")
+
+        for page_num in range(max_pages_to_fetch):
+            if markets_fetched_count >= limit:
+                break
+
+            batch_limit = min(1000, limit - markets_fetched_count)
+            if batch_limit <= 0:
+                break
+
+            current_batch = await self._fetch_raw_markets_list(
+                limit=batch_limit, 
+                before=last_market_id, 
+                only_open=only_open
+            )
+            
+            if not current_batch:
+                break
+
+            raw_markets_list_paginated.extend(current_batch)
+            markets_fetched_count += len(current_batch)
+            pbar_overall.update(len(current_batch))
+            
+            if len(current_batch) < batch_limit:
+                break 
+            
+            last_market_id = current_batch[-1]["id"]
+            
+        pbar_overall.close()
+        
+        if not raw_markets_list_paginated:
             return []
             
-        # Filter markets based on basic criteria
-        # Create a list of market IDs to fetch details for, avoiding fetching for already filtered out markets
-        markets_to_fetch_details_for = [
-            m["id"] for m in raw_markets
-            if m.get("uniqueBettorCount", 0) >= min_unique_bettors
-            and m.get("volume", 0) >= min_volume
-            and m.get("outcomeType") in ["BINARY", "MULTIPLE_CHOICE"]
-        ]
+        markets_to_fetch_details_for_ids: List[str] = []
+        for m_summary in raw_markets_list_paginated:
+            if only_open and m_summary.get("isResolved", False):
+                continue
+            if m_summary.get("uniqueBettorCount", 0) < min_unique_bettors:
+                continue
+            if m_summary.get("volume", 0) < min_volume:
+                continue
+            if m_summary.get("outcomeType") not in ["BINARY", "MULTIPLE_CHOICE"]:
+                continue
+            markets_to_fetch_details_for_ids.append(m_summary["id"])
         
-        print(f"Initial open markets matching basic criteria: {len(markets_to_fetch_details_for)}")
-
-        markets = []
-        for i in tqdm(range(0, len(markets_to_fetch_details_for), self.max_concurrent), desc="Processing batches of market details"):
-            batch_ids = markets_to_fetch_details_for[i:i + self.max_concurrent]
+        processed_markets: List[ManifoldMarket] = []
+        for i in tqdm(range(0, len(markets_to_fetch_details_for_ids), self.max_concurrent), desc="Fetching Manifold market details"):
+            batch_ids = markets_to_fetch_details_for_ids[i:i + self.max_concurrent]
             tasks = [self._get_market_details(market_id) for market_id in batch_ids]
-            results = await asyncio.gather(*tasks)
+            results = await asyncio.gather(*tasks, return_exceptions=True)
             
-            for market_id, full_data in zip(batch_ids, results):
-                if not full_data:
-                    # print(f"Failed to fetch details for market {market_id}") # Already printed in _get_market_details
+            for market_id_original, full_data_or_exc in zip(batch_ids, results):
+                if isinstance(full_data_or_exc, Exception) or not full_data_or_exc:
                     continue
-                try:
-                    # Ensure the ID passed to _create_market is the original one from Manifold, not "manifold_" + id
-                    market_obj = self._create_market(full_data)
-                    if market_obj:
-                        # Additional check, though most filtering is done before fetching details
-                        if market_obj.unique_bettor_count >= min_unique_bettors and \
-                           market_obj.volume >= min_volume:
-                            markets.append(market_obj)
-                        pass
-                except Exception as e:
-                    print(f"Error processing market {full_data.get('id')} after fetching details: {e}")
-                    continue
-            
-        print(f"Final number of processed markets: {len(markets)}")
-        return markets
+                
+                market_obj = self._create_market(full_data_or_exc)
+                if market_obj:
+                    if only_open and (market_obj.resolution and market_obj.resolution != "MKT"):
+                        continue
+                    if market_obj.unique_bettor_count >= min_unique_bettors and \
+                       market_obj.volume >= min_volume:
+                        processed_markets.append(market_obj)
+        
+        return processed_markets
 
 
 async def main():
-   #  try:
-        async with ManifoldMarketClient(max_concurrent=10) as client:
-            markets = await client.get_filtered_markets(
-                min_unique_bettors=50,
-                min_volume=500,
-                # limit=200 # Reduced limit for faster testing
-            )
-            print(f"Found {len(markets)} markets matching criteria")
-            
-            # Convert list of ManifoldMarket objects to list of dicts for DataFrame
-            market_dicts = []
-            for market in markets:
-                market_dict = market.__dict__  # Start with metadata
-                # Add other top-level fields from ManifoldMarket
-                market_dict['outcomes'] = market.outcomes
-                market_dict['outcome_prices'] = market.outcome_prices
-                market_dict['formatted_outcomes'] = market.formatted_outcomes
-                market_dict['probability'] = market.probability
-                market_dict['initial_probability'] = market.initial_probability
-                market_dict['p'] = market.p
-                market_dict['total_shares'] = market.total_shares
-                market_dict['pool'] = market.pool
-                # For answers, store their text representation or similar if needed
-                if market.answers:
-                    market_dict['answers'] = [ans.text for ans in market.answers] # Or ans.__dict__
-                else:
-                    market_dict['answers'] = None
-                market_dicts.append(market_dict)
+    print("Starting ManifoldScraper example...")
+    async with ManifoldScraper(max_concurrent=5) as client:
+        print("Fetching ALL markets (including resolved ones)... Min 0 bettors, 0 volume, limit 50")
+        all_markets = await client.fetch_markets(
+            only_open=False, 
+            limit=50,
+            max_pages_to_fetch=2,
+            min_unique_bettors=0, 
+            min_volume=0
+        )
+        print(f"Found {len(all_markets)} ALL markets matching criteria.")
+        if all_markets:
+            print(f"First market (all): {all_markets[0].question}, Resolved: {all_markets[0].resolution is not None}")
 
-            if market_dicts:
-                df = pd.DataFrame(market_dicts)
-                print(df.head())
-                # Optional: print columns to verify
-                # print(df.columns)
-            else:
-                print("No markets to display in DataFrame.")
+        print("\nFetching OPEN markets... Min 0 bettors, 0 volume, limit 50")
+        open_markets = await client.fetch_markets(
+            only_open=True, 
+            limit=50, 
+            max_pages_to_fetch=2,
+            min_unique_bettors=0, 
+            min_volume=0
+        )
+        print(f"Found {len(open_markets)} OPEN markets matching criteria.")
+        if open_markets:
+            print(f"First market (open): {open_markets[0].question}, Resolved: {open_markets[0].resolution is not None}")
+
+        print("\nFetching OPEN markets with min 50 bettors, min 500 volume, limit 50")
+        filtered_open_markets = await client.fetch_markets(
+            only_open=True,
+            limit=50,
+            max_pages_to_fetch=2,
+            min_unique_bettors=50,
+            min_volume=500
+        )
+        print(f"Found {len(filtered_open_markets)} filtered OPEN markets.")
+        if filtered_open_markets:
+            pprint(filtered_open_markets[0].__dict__)
+
+            print("\nConverting filtered open markets to PooledMarket format...")
+            pooled_markets_data = await client.get_pooled_markets(
+                only_open=True,
+                limit=50,
+                max_pages_to_fetch=2,
+                min_unique_bettors=50,
+                min_volume=500
+            )
+            print(f"Got {len(pooled_markets_data)} pooled markets.")
+            if pooled_markets_data:
+                pprint(pooled_markets_data[0].__dict__)
+
+            manually_pooled = [m.to_pooled_market() for m in filtered_open_markets]
+            print(f"Manually converted {len(manually_pooled)} markets.")
 
 
 if __name__ == "__main__":

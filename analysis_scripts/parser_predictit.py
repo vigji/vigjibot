@@ -6,8 +6,10 @@ from typing import List, Dict, Any, Optional
 import pandas as pd # For main example, not core logic
 from pprint import pprint # For main example
 import requests # For the scraper
+import time
+import asyncio
 
-from .common_markets import PooledMarket, BaseMarket, parse_datetime_flexible
+from common_markets import PooledMarket, BaseMarket, BaseScraper
 
 @dataclass
 class PredictItContract:
@@ -140,7 +142,7 @@ class PredictItMarket(BaseMarket):
             outcome_probabilities=self.outcome_prices,
             formatted_outcomes=self.formatted_outcomes,
             url=self.url,
-            published_at=parse_datetime_flexible(self.api_timestamp), # Using API timestamp as proxy
+            published_at=BaseMarket.parse_datetime_flexible(self.api_timestamp), # Using API timestamp as proxy
             source_platform="PredictIt",
             volume=None, # PredictIt 'all' endpoint does not provide market-level volume directly
             n_forecasters=None, # Not directly available
@@ -150,15 +152,21 @@ class PredictItMarket(BaseMarket):
             raw_market_data=self
         )
 
-class PredictItScraper:
+class PredictItScraper(BaseScraper):
     API_URL = "https://www.predictit.org/api/marketdata/all/"
 
     def __init__(self, timeout: int = 15):
         self.timeout = timeout
+        self.session = requests.Session()
+        self.session.headers.update({
+            "User-Agent": "Mozilla/5.0 (compatible; PythonScraper/1.0)"
+        })
 
-    def _fetch_raw_data(self) -> Optional[Dict[str, Any]]:
+    async def _fetch_raw_data(self) -> Optional[Dict[str, Any]]:
+        """Fetch raw data from PredictIt API."""
         try:
-            response = requests.get(self.API_URL, timeout=self.timeout)
+            # Synchronous call within async method
+            response = self.session.get(self.API_URL, timeout=self.timeout)
             response.raise_for_status()
             return response.json()
         except requests.exceptions.RequestException as e:
@@ -168,8 +176,18 @@ class PredictItScraper:
             print(f"Error decoding JSON from PredictIt API: {e}")
             return None
 
-    def fetch_markets(self, only_open: bool = True) -> List[PredictItMarket]:
-        raw_response_data = self._fetch_raw_data()
+    async def fetch_markets(self, only_open: bool = True, **kwargs: Any) -> List[PredictItMarket]:
+        """
+        Fetch markets from PredictIt API.
+
+        Args:
+            only_open: If True, returns only open markets.
+            **kwargs: Additional parameters (currently unused for PredictIt).
+        
+        Returns:
+            A list of PredictItMarket objects.
+        """
+        raw_response_data = await self._fetch_raw_data()
         if not raw_response_data:
             return []
 
@@ -189,21 +207,24 @@ class PredictItScraper:
         
         return parsed_markets
 
-def main():
+async def main():
     print("Starting PredictItScraper example...")
     scraper = PredictItScraper()
 
     fetch_only_open_markets = True
     print(f"Fetching {'open' if fetch_only_open_markets else 'all'} markets from PredictIt...")
-    start_time = time.time() # Import time for this
-    predictit_market_list = scraper.fetch_markets(only_open=fetch_only_open_markets)
+    start_time = time.time()
+    
+    predictit_market_list = await scraper.fetch_markets(only_open=fetch_only_open_markets)
     end_time = time.time()
 
     print(f"Fetching took {end_time - start_time:.2f} seconds.")
     print(f"Fetched {len(predictit_market_list)} PredictIt markets.")
 
     if predictit_market_list:
-        pooled_markets = [market.to_pooled_market() for market in predictit_market_list]
+        # Example of getting pooled markets using the BaseScraper method
+        print("\nConverting fetched PredictIt markets to PooledMarket format using get_pooled_markets...")
+        pooled_markets = await scraper.get_pooled_markets(only_open=fetch_only_open_markets)
         print(f"Converted {len(pooled_markets)} markets to PooledMarket format.")
 
         if pooled_markets:
@@ -212,15 +233,12 @@ def main():
 
             # Optional: Create a DataFrame for analysis or CSV export
             # df_pooled = pd.DataFrame([pm.__dict__ for pm in pooled_markets])
-            # print(f"Created DataFrame with {len(df_pooled)} pooled PredictIt markets. Columns: {df_pooled.columns.tolist()}")
+            # print(f"Created DataFrame with {len(df_pooled)} pooled PredictIt markets.")
             # print(df_pooled.head())
-            # df_pooled.to_csv("predictit_pooled_markets.csv", index=False)
-            # print("Saved pooled PredictIt markets to predictit_pooled_markets.csv")
         else:
             print("No PredictIt markets were successfully converted to PooledMarket format.")
     else:
         print("No markets were fetched from PredictIt.")
 
 if __name__ == "__main__":
-    import time # For timing in main
-    main()
+    asyncio.run(main())

@@ -82,3 +82,48 @@ class BaseMarket(ABC):
             except ValueError:
                 # print(f"Warning: Could not parse datetime string: {dt_str}")
                 return None
+
+
+class BaseScraper(ABC):
+    """
+    Abstract base class for platform-specific scrapers.
+    """
+
+    @abstractmethod
+    async def fetch_markets(self, only_open: bool = True, **kwargs) -> List[Any]:
+        """
+        Fetches markets from the specific platform.
+
+        Args:
+            only_open: If True, fetches only open/active markets.
+            **kwargs: Additional platform-specific parameters.
+
+        Returns:
+            A list of platform-specific market objects.
+        """
+        pass
+
+    async def get_pooled_markets(self, only_open: bool = True, **kwargs) -> List[PooledMarket]:
+        """
+        Fetches markets and converts them to the PooledMarket format.
+
+        Args:
+            only_open: If True, fetches only open/active markets.
+            **kwargs: Additional platform-specific parameters.
+
+        Returns:
+            A list of PooledMarket objects.
+        """
+        platform_specific_markets = await self.fetch_markets(only_open=only_open, **kwargs)
+        pooled_markets = []
+        for market in platform_specific_markets:
+            if hasattr(market, 'to_pooled_market') and callable(market.to_pooled_market):
+                try:
+                    pooled_markets.append(market.to_pooled_market())
+                except Exception as e:
+                    market_id = getattr(market, 'id', 'unknown_id')
+                    print(f"Warning: Could not convert market {market_id} to PooledMarket: {e}")
+            else:
+                market_id = getattr(market, 'id', 'unknown_id')
+                print(f"Warning: Market object {market_id} of type {type(market)} does not have a to_pooled_market method.")
+        return pooled_markets

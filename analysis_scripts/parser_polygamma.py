@@ -18,7 +18,7 @@ import json
 from typing import List, Optional, Any, Dict
 from dataclasses import dataclass
 
-from common_markets import PooledMarket, BaseMarket
+from common_markets import PooledMarket, BaseMarket, BaseScraper
 
 # Load environment variables if .env file exists
 dotenv.load_dotenv()
@@ -177,15 +177,17 @@ class PolymarketMarket(BaseMarket):
             raw_market_data=self
         )
 
-class PolymarketGammaScraper:
+class PolymarketGammaScraper(BaseScraper):
     BASE_URL = GAMMA_API_BASE_URL
 
     def __init__(self, timeout: int = 20):
         self.timeout = timeout
 
-    def _fetch_page_data(self, limit: int, offset: int) -> List[Dict[str, Any]]:
+    # Note: Making this async, but requests call is synchronous.
+    async def _fetch_page_data(self, limit: int, offset: int) -> List[Dict[str, Any]]:
         params = {"limit": limit, "offset": offset}
         try:
+            # Synchronous call
             response = requests.get(f"{self.BASE_URL}/markets", params=params, timeout=self.timeout)
             response.raise_for_status()
             return response.json()
@@ -196,38 +198,43 @@ class PolymarketGammaScraper:
             print(f"Error decoding JSON from Gamma API (offset {offset}): {e}")
             return []
 
-    # @lru_cache(maxsize=1) # Caching should be time-based for dynamic data
-    def _fetch_all_raw_markets(self, max_requests: int = 200, limit_per_page: int = 100) -> List[Dict[str, Any]]:
+    # Note: Async, but internal calls are effectively synchronous due to _fetch_page_data
+    async def _fetch_all_raw_markets(self, max_requests: int = 200, limit_per_page: int = 100) -> List[Dict[str, Any]]:
         all_raw_market_data: List[Dict[str, Any]] = []
         offset = 0
         
         # print("Fetching all raw market data from Gamma API...")
+        # tqdm is not async-friendly by default, consider alternatives or careful usage in async.
+        # For this refactor, keeping it but noting potential issues in highly concurrent scenarios.
         for i in tqdm(range(max_requests), desc="Fetching Polymarket pages"):
-            raw_data_list = self._fetch_page_data(limit=limit_per_page, offset=offset)
+            raw_data_list = await self._fetch_page_data(limit=limit_per_page, offset=offset)
             if not raw_data_list:
-                print(f"No more markets to fetch after {i+1} requests (offset {offset}).")
+                # print(f"No more markets to fetch after {i+1} requests (offset {offset}).")
                 break
             all_raw_market_data.extend(raw_data_list)
             if len(raw_data_list) < limit_per_page:
-                print(f"Fetched last page of markets ({len(raw_data_list)} items) in request {i+1}.")
+                # print(f"Fetched last page of markets ({len(raw_data_list)} items) in request {i+1}.")
                 break
             offset += limit_per_page
             if i == max_requests - 1:
                 print(f"Reached max_requests limit ({max_requests}) for Gamma API.")
         return all_raw_market_data
 
-    def fetch_markets(self, only_open: bool = True, max_requests: int = 200, limit_per_page: int = 100) -> List[PolymarketMarket]:
+    async def fetch_markets(self, only_open: bool = True, **kwargs: Any) -> List[PolymarketMarket]:
         """
         Fetch markets from Polymarket Gamma API and parse them into PolymarketMarket objects.
 
         Args:
             only_open: Whether to return only open markets (where closed is False).
-            max_requests: Maximum number of API requests to prevent infinite loops.
-            limit_per_page: Number of markets to fetch per API call.
+            **kwargs: Supports 'max_requests' (int, default 200) and 
+                      'limit_per_page' (int, default 100).
         Returns:
             A list of PolymarketMarket objects.
         """
-        raw_markets_data = self._fetch_all_raw_markets(max_requests=max_requests, limit_per_page=limit_per_page)
+        max_requests = kwargs.get('max_requests', 200)
+        limit_per_page = kwargs.get('limit_per_page', 100)
+
+        raw_markets_data = await self._fetch_all_raw_markets(max_requests=max_requests, limit_per_page=limit_per_page)
         
         parsed_markets: List[PolymarketMarket] = []
         if not raw_markets_data:
@@ -248,77 +255,54 @@ class PolymarketGammaScraper:
         # print(f"Successfully parsed {len(parsed_markets)} markets.")
         return parsed_markets
 
-_last_fetch_time = None
-_cached_markets = None
-_CACHE_DURATION_MINUTES = 30
-
-def get_markets_with_cache_gamma(scraper: PolymarketGammaScraper, only_open: bool = True, max_requests: int = 200, limit_per_page: int = 500) -> List[PolymarketMarket]:
-    """
-    Get markets from Gamma API with simple time-based caching.
-    """
-    global _last_fetch_time, _cached_markets
-    current_time = datetime.now()
-
-    if _cached_markets is not None and _last_fetch_time is not None:
-        elapsed_minutes = (current_time - _last_fetch_time).total_seconds() / 60
-        if elapsed_minutes < _CACHE_DURATION_MINUTES:
-            # print(f"Returning cached Polymarket data (fetched {elapsed_minutes:.1f} minutes ago).")
-            # Apply filtering to cached data if needed, e.g. only_open might change
-            if only_open:
-                return [m for m in _cached_markets if not m.closed]
-            else:
-                return _cached_markets
-
-    # print(f"Cache expired or not available. Fetching fresh Polymarket data...")
-    fresh_markets = scraper.fetch_markets(only_open=False, max_requests=max_requests, limit_per_page=limit_per_page) # Fetch all, then filter
-    _cached_markets = fresh_markets
-    _last_fetch_time = current_time
-    
-    if only_open:
-        return [m for m in fresh_markets if not m.closed]
-    else:
-        return fresh_markets
-
 
 if __name__ == "__main__":
-    print("Starting PolymarketGammaScraper example...")
-    scraper = PolymarketGammaScraper()
+    import asyncio # For async main
 
-    # Fetch active markets using the cached utility function
-    fetch_active = True
-    max_api_requests = 600 # Limit for example speed
-    print(f"Fetching {'active' if fetch_active else 'all'} markets from Polymarket (max_requests={max_api_requests})...")
-    start_time = time.time()
-    
-    # Use the scraper's fetch_markets method directly for non-cached or specific calls
-    # polymarket_list = scraper.fetch_markets(only_open=fetch_active, max_requests=max_api_requests)
-    
-    # Or use the caching wrapper
-    polymarket_list = get_markets_with_cache_gamma(scraper, only_open=fetch_active, max_requests=max_api_requests)
-    
-    end_time = time.time()
+    async def run_polymarket_scraper():
+        print("Starting PolymarketGammaScraper example...")
+        scraper = PolymarketGammaScraper()
 
-    print(f"Fetching took {end_time - start_time:.2f} seconds.")
-    print(f"Fetched {len(polymarket_list)} Polymarket markets.")
+        fetch_active = True
+        max_api_req = 3 # Reduced for quick example
+        limit_p_page = 50 # Reduced for quick example
+        print(f"Fetching {'active' if fetch_active else 'all'} markets from Polymarket (max_requests={max_api_req}, limit_per_page={limit_p_page})...")
+        start_time = time.time()
+        
+        polymarket_list = await scraper.fetch_markets(
+            only_open=fetch_active, 
+            max_requests=max_api_req, 
+            limit_per_page=limit_p_page
+        )
+        
+        end_time = time.time()
 
-    if polymarket_list:
-        # Convert to PooledMarket format
-        pooled_markets = [market.to_pooled_market() for market in polymarket_list]
-        print(f"Converted {len(pooled_markets)} markets to PooledMarket format.")
+        print(f"Fetching took {end_time - start_time:.2f} seconds.")
+        print(f"Fetched {len(polymarket_list)} Polymarket markets.")
 
-        if pooled_markets:
-            print("Details of the first pooled market (Polymarket):")
-            pprint(pooled_markets[0].__dict__)
+        if polymarket_list:
+            # Convert to PooledMarket format using the inherited method
+            print("\nConverting fetched Polymarket markets to PooledMarket format using get_pooled_markets...")
+            pooled_markets = await scraper.get_pooled_markets(
+                only_open=fetch_active, 
+                max_requests=max_api_req, 
+                limit_per_page=limit_p_page
+            )
+            print(f"Converted {len(pooled_markets)} markets to PooledMarket format.")
 
-            # Optional: Create a DataFrame
-            # df_pooled = pd.DataFrame([pm.__dict__ for pm in pooled_markets])
-            # print(f"Created DataFrame with {len(df_pooled)} pooled Polymarket markets. Columns: {df_pooled.columns.tolist()}")
-            # print(df_pooled.head())
-            # df_pooled.to_csv("polymarket_gamma_pooled_markets.csv", index=False)
-            # print("Saved pooled Polymarket markets to polymarket_gamma_pooled_markets.csv")
+            if pooled_markets:
+                print("Details of the first pooled market (Polymarket):")
+                pprint(pooled_markets[0].__dict__)
+
+                # Optional: Create a DataFrame
+                # df_pooled = pd.DataFrame([pm.__dict__ for pm in pooled_markets])
+                # print(f"Created DataFrame with {len(df_pooled)} pooled Polymarket markets.")
+                # print(df_pooled.head())
+            else:
+                print("No Polymarket markets were successfully converted to PooledMarket format.")
         else:
-            print("No Polymarket markets were successfully converted to PooledMarket format.")
-    else:
-        print("No markets were fetched from Polymarket.")
+            print("No markets were fetched from Polymarket.")
+
+    asyncio.run(run_polymarket_scraper())
 
 
