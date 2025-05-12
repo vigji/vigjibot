@@ -233,7 +233,7 @@ class ManifoldScraper(BaseScraper):
     async def fetch_markets(
         self,
         only_open: bool = True,
-        min_unique_bettors: int = 30,
+        min_unique_bettors: int = 50,
         min_volume: float = 0,
         **kwargs: Any
     ) -> List[ManifoldMarket]:
@@ -297,7 +297,9 @@ class ManifoldScraper(BaseScraper):
 
 async def main():
     from pprint import pprint
+    import time
     print("Starting ManifoldScraper example...")
+    start_time = time.time()
     async with ManifoldScraper(max_concurrent=5) as client:
         open_markets = await client.fetch_markets(
             only_open=True, 
@@ -306,20 +308,13 @@ async def main():
         if open_markets:
             print(f"First market (open): {open_markets[0].question}, Resolved: {open_markets[0].resolution is not None}")
 
-        print(f"Found {len(open_markets)} filtered OPEN markets.")
-        if open_markets:
-            pprint(open_markets[0].__dict__)
 
-            print("\nConverting filtered open markets to PooledMarket format...")
-            pooled_markets_data = await client.get_pooled_markets(
-                only_open=True,
-            )
-            print(f"Got {len(pooled_markets_data)} pooled markets.")
-            if pooled_markets_data:
-                pprint(pooled_markets_data[0].__dict__)
+        manually_pooled = [m.to_pooled_market() for m in open_markets]
+        print(f"converted {len(manually_pooled)} markets.")
 
-            manually_pooled = [m.to_pooled_market() for m in open_markets]
-            print(f"converted {len(manually_pooled)} markets.")
+    end_time = time.time()
+    print(f"Time taken: {end_time - start_time} seconds")
+    
 
 
 if __name__ == "__main__":

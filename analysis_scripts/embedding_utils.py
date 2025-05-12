@@ -69,8 +69,14 @@ def embed_list_with_cache(questions_list, cache_folder=None, chunk_size=None):
         return embeddings_array
 
 
-def embed_questions_df(question_df, question_column="question", chunk_size=None, cache_folder=None):
+def embed_questions_df(question_df, question_column="question", cache_folder=None):
     questions_list = question_df[question_column].to_list()
+    n_questions = len(questions_list)
+    if n_questions > 1024:
+        chunk_size = 1024
+    else:
+        chunk_size = None
+
     sanitized_questions = [q.strip() for q in questions_list]
     embeddings_array = embed_list_with_cache(sanitized_questions, chunk_size=chunk_size, cache_folder=cache_folder)
     return pd.DataFrame(embeddings_array, index=question_df.index)

@@ -210,28 +210,26 @@ class PolymarketGammaScraper(BaseScraper):
             return []
 
     # Note: Async, but internal calls are effectively synchronous due to _fetch_page_data
-    async def _fetch_all_raw_markets(self, max_requests: int = 200, limit_per_page: int = 500) -> List[Dict[str, Any]]:
+    async def _fetch_all_raw_markets(self, max_requests: int = 200) -> List[Dict[str, Any]]:
         all_raw_market_data: List[Dict[str, Any]] = []
         offset = 0
+        LIMIT_PER_PAGE = 500
         
-        # print("Fetching all raw market data from Gamma API...")
         # tqdm is not async-friendly by default, consider alternatives or careful usage in async.
         # For this refactor, keeping it but noting potential issues in highly concurrent scenarios.
         for i in tqdm(range(max_requests), desc="Fetching Polymarket pages"):
-            raw_data_list = await self._fetch_page_data(limit=limit_per_page, offset=offset)
+            raw_data_list = await self._fetch_page_data(limit=LIMIT_PER_PAGE, offset=offset)
             if not raw_data_list:
-                # print(f"No more markets to fetch after {i+1} requests (offset {offset}).")
                 break
             all_raw_market_data.extend(raw_data_list)
-            if len(raw_data_list) < limit_per_page:
-                # print(f"Fetched last page of markets ({len(raw_data_list)} items) in request {i+1}.")
+            if len(raw_data_list) < LIMIT_PER_PAGE:
                 break
-            offset += limit_per_page
+            offset += LIMIT_PER_PAGE
             if i == max_requests - 1:
                 print(f"Reached max_requests limit ({max_requests}) for Gamma API.")
         return all_raw_market_data
 
-    async def fetch_markets(self, only_open: bool = True, **kwargs: Any) -> List[PolymarketMarket]:
+    async def fetch_markets(self, only_open: bool = True, min_volume: float = 10000, **kwargs: Any) -> List[PolymarketMarket]:
         """
         Fetch markets from Polymarket Gamma API and parse them into PolymarketMarket objects.
 
@@ -243,9 +241,8 @@ class PolymarketGammaScraper(BaseScraper):
             A list of PolymarketMarket objects.
         """
         max_requests = kwargs.get('max_requests', 200)
-        limit_per_page = kwargs.get('limit_per_page', 500)
 
-        raw_markets_data = await self._fetch_all_raw_markets(max_requests=max_requests, limit_per_page=limit_per_page)
+        raw_markets_data = await self._fetch_all_raw_markets(max_requests=max_requests)
         
         parsed_markets: List[PolymarketMarket] = []
         if not raw_markets_data:
@@ -255,11 +252,14 @@ class PolymarketGammaScraper(BaseScraper):
         for market_data_dict in raw_markets_data:
             try:
                 market_obj = PolymarketMarket.from_api_data(market_data_dict)
-                if only_open:
-                    if not market_obj.closed:
-                        parsed_markets.append(market_obj)
-                else:
-                    parsed_markets.append(market_obj)
+                if only_open and market_obj.closed:
+                    continue
+
+                if market_obj.total_volume < min_volume:
+                    continue
+
+                parsed_markets.append(market_obj)
+
             except Exception as e:
                 print(f"Error parsing market data for market ID {market_data_dict.get('id', 'Unknown')}: {e}")
         

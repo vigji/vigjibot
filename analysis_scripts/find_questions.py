@@ -1,16 +1,31 @@
-# %%
-import pandas as pd
 from datetime import datetime, timedelta
 import asyncio
-import typeguard
+import pandas as pd
 
 from forecasting_tools import MetaculusApi, ApiFilter, MetaculusQuestion
+
+start_date = datetime(2024, 10, 1)
+one_year_from_now = datetime.now() + timedelta(days=365)
+
+DEFAULT_FILTER = ApiFilter(
+    allowed_statuses=["open"],
+    allowed_types=["binary"],
+    num_forecasters_gte=40,
+    scheduled_resolve_time_lt=one_year_from_now,
+    includes_bots_in_aggregates=False,
+    community_prediction_exists=True,
+    # publish_time_gt=start_date,
+)
 
 class MyMetaculusApi(MetaculusApi):
     @classmethod
     async def grab_all_questions_with_filter(
-        cls, filter: ApiFilter
+        cls, filter: ApiFilter = None
     ) -> list[MetaculusQuestion]:
+
+        # This is reachable - the filter parameter is optional and can be None
+        if filter is None:
+            filter = DEFAULT_FILTER
 
         questions: list[MetaculusQuestion] = []
         more_questions_available = True
@@ -26,59 +41,37 @@ class MyMetaculusApi(MetaculusApi):
             page_num += 1
             await asyncio.sleep(0.1)
         return questions
-
-# %%
-start_date = datetime(2024, 10, 1)
-one_year_from_now = datetime.now() + timedelta(days=365)
-
-api_filter = ApiFilter(
-            allowed_statuses=["open"],
-            allowed_types=["binary"],
-            num_forecasters_gte=40,
-            scheduled_resolve_time_lt=one_year_from_now,
-            includes_bots_in_aggregates=False,
-            community_prediction_exists=True,
-            # publish_time_gt=start_date,
+    
+    @classmethod
+    async def get_all_questions_df(self):
+        questions = await self.grab_all_questions_with_filter()
+        print(len(questions))
+        print(questions[0])
+        print(type(questions[0]))
+        print(questions[0].__dict__)
+        print(dir(questions[0]))
+        community_predictions = [
+            rep.community_prediction_at_access_time for rep in questions
+        ]
+        num_forecasters = [
+            rep.num_forecasters for rep in questions
+        ]
+        question_ids = [rep.id_of_question for rep in questions]
+        question_texts = [rep.question_text for rep in questions]
+        question_urls = [rep.page_url for rep in questions]
+        publication_times = [rep.published_time for rep in questions]
+        model_df = pd.DataFrame(
+            {
+                "community_prediction": community_predictions,
+                "num_forecasters": num_forecasters,
+                "id": "metaculus_" + str(question_ids),
+                "question": question_texts,
+                "url": question_urls,
+                "published_time": publication_times,
+            }
         )
+        return model_df
 
-
-api_filter = ApiFilter(
-            allowed_statuses=["open"],
-            allowed_types=["binary"],
-            num_forecasters_gte=40,
-            scheduled_resolve_time_lt=one_year_from_now,
-            includes_bots_in_aggregates=False,
-            community_prediction_exists=True,
-        )
-n_questions = MetaculusApi._determine_how_many_questions_match_filter(api_filter)
-# number_of_questions = 1000
-# %%
-questions = await MyMetaculusApi.grab_all_questions_with_filter(
-            api_filter,
-            # num_questions=n_questions,
-            # randomly_sample=False,
-        )
-print(len(questions))
-
-# %%
-num_of_questions_to_return = 200
-questions = asyncio.run(
-            MetaculusApi.get_questions_matching_filter(
-                api_filter,
-                num_questions=num_of_questions_to_return,
-                randomly_sample=True,
-            )
-        )
-questions = typeguard.check_type(questions, list)
-# %%
-questions = MetaculusApi.get_benchmark_questions(num_of_questions_to_return=200)
-# %%
-
-n_questions
-
-
-
-
-
-
-# %%
+if __name__ == "__main__":
+    questions = asyncio.run(MyMetaculusApi.get_all_questions_df())
+    print(len(questions))

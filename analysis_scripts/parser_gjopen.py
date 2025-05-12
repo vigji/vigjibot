@@ -243,7 +243,7 @@ class GoodJudgmentOpenScraper(BaseScraper):
             return market_data
         return None
 
-    async def fetch_markets(self, only_open: bool = True, **kwargs: Any) -> List[GJOpenMarket]:
+    async def fetch_markets(self, only_open: bool = True, min_n_forecasters: int = 40, **kwargs: Any) -> List[GJOpenMarket]:
         """
         Fetches markets from Good Judgment Open.
 
@@ -294,6 +294,11 @@ class GoodJudgmentOpenScraper(BaseScraper):
                  break
             
             all_markets_data.extend(market_objs_on_page)
+            print([market.predictors_count for market in market_objs_on_page])
+
+            if not all(market.predictors_count >= min_n_forecasters for market in market_objs_on_page):
+                print(f"Stopping early on page {page_num} as no markets with at least {min_n_forecasters} forecasters were found.")
+                break
             
             if not market_objs_on_page and not question_links:
                 # print(f"Stopping early on page {page_num} as no links or markets were found.")
@@ -318,47 +323,34 @@ if __name__ == "__main__":
         
         try:
             scraper = GoodJudgmentOpenScraper()
-            print("Successfully initialized and logged into Good Judgment Open.")
-        except (FileNotFoundError, ValueError, ConnectionError) as e:
-            print(f"Error initializing scraper: {e}")
-            print("Please ensure credentials are set up via environment variables (GJO_EMAIL, GJO_PASSWORD) or ~/.gjopen_credentials.json")
-            return # Changed from exit(1) for async context
-
-        num_pages_to_fetch = 2 
-        print(f"Fetching the first {num_pages_to_fetch} page(s) of markets sorted by predictor count...")
-        start_time = time.time()
-        
-        # Fetch markets (returns List[GJOpenMarket])
-        # only_open=True is passed but note GJOpen's API limitations
-        # Pass max_pages via kwargs
-        gjopen_markets_list = await scraper.fetch_markets(only_open=True, max_pages=num_pages_to_fetch)
-        end_time = time.time()
-
-        print(f"Fetching took {end_time - start_time:.2f} seconds.")
-        print(f"Fetched {len(gjopen_markets_list)} GJOpen markets.")
-
-        if gjopen_markets_list:
-            # Example of getting pooled markets using the BaseScraper method
-            print("\nConverting fetched GJOpen markets to PooledMarket format using get_pooled_markets...")
-            # We pass the same kwargs to get_pooled_markets as it will call fetch_markets again internally.
-            # If we want to convert already fetched markets, we do it manually:
-            # pooled_markets = [market.to_pooled_market() for market in gjopen_markets_list]
+            print("Successfully initialized scraper.")
             
-            # Using the inherited method:
-            pooled_markets = await scraper.get_pooled_markets(only_open=True, max_pages=num_pages_to_fetch)
-            print(f"Converted {len(pooled_markets)} markets to PooledMarket format.")
+            num_pages_to_fetch = 20
+            print(f"Fetching the first {num_pages_to_fetch} page(s) of markets sorted by predictor count...")
+            start_time = time.time()
+            
+            async with scraper:  # Use async context manager
+                # Fetch markets using get_pooled_markets directly
+                pooled_markets = await scraper.get_pooled_markets(
+                    only_open=True, 
+                    max_pages=num_pages_to_fetch
+                )
+                
+                end_time = time.time()
+                print(f"\nFetching took {end_time - start_time:.2f} seconds.")
+                print(f"Fetched {len(pooled_markets)} GJOpen markets.")
 
-            if pooled_markets:
-                print("Details of the first pooled market:")
-                pprint(pooled_markets[0].__dict__)
+                if pooled_markets:
+                    print("\nDetails of the first pooled market:")
 
-                df_pooled = pd.DataFrame([pm.__dict__ for pm in pooled_markets])
-                # print(f"Created DataFrame with {len(df_pooled)} pooled markets. Columns: {df_pooled.columns.tolist()}")
-                # print(df_pooled.head())
-            else:
-                print("No markets were successfully converted to PooledMarket format.")
-        else:
-            print("No markets were fetched from Good Judgment Open.")
+                    df_pooled = pd.DataFrame([pm.__dict__ for pm in pooled_markets])
+                    print(f"\nCreated DataFrame with {len(df_pooled)} pooled markets.")
+                else:
+                    print("No markets were fetched from Good Judgment Open.")
+                    
+        except (FileNotFoundError, ValueError, ConnectionError) as e:
+            print(f"Error: {e}")
+            print("Please ensure credentials are set up via environment variables (GJO_EMAIL, GJO_PASSWORD) or ~/.gjopen_credentials.json")
 
     asyncio.run(run_gjopen_scraper())
 
