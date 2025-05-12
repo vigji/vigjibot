@@ -174,3 +174,7 @@ cython_debug/
 
 *.csv
 *.npy
+
+*/data/*
+*/data 
+data/
