@@ -284,7 +284,7 @@ class TemplateForecaster(ForecastBot):
             {upper_bound_message}
 
             Formatting Instructions:
-            - Please notice the units requested (e.g. whether you represent a number as 1,000,000 or 1 million).
+            - Please notice the units requested. Do not indicate magnitudes using words like "thousand", "million", "billion", etc., unless the units for the question are "thousands" or "millions", etc.
             - Never use scientific notation.
             - Always start with a smaller number (more negative if negative) and then increase from there
 
@@ -416,9 +416,10 @@ if __name__ == "__main__":
     elif run_mode == "test_questions":
         # Example questions are a good way to test the bot's performance on a single question
         EXAMPLE_QUESTIONS = [
-            "https://www.metaculus.com/questions/578/human-extinction-by-2100/",  # Human Extinction - Binary
-            "https://www.metaculus.com/questions/14333/age-of-oldest-human-as-of-2100/",  # Age of Oldest Human - Numeric
-            "https://www.metaculus.com/questions/22427/number-of-new-leading-ai-labs/",  # Number of New Leading AI Labs - Multiple Choice
+            "https://www.metaculus.com/questions/37615"
+            # "https://www.metaculus.com/questions/578/human-extinction-by-2100/",  # Human Extinction - Binary
+            # "https://www.metaculus.com/questions/14333/age-of-oldest-human-as-of-2100/",  # Age of Oldest Human - Numeric
+            # "https://www.metaculus.com/questions/22427/number-of-new-leading-ai-labs/",  # Number of New Leading AI Labs - Multiple Choice
         ]
         template_bot.skip_previously_forecasted_questions = False
         questions = [

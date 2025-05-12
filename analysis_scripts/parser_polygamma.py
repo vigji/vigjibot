@@ -17,6 +17,7 @@ import time
 import json
 from typing import List, Optional, Any, Dict
 from dataclasses import dataclass
+import aiohttp
 
 from common_markets import PooledMarket, BaseMarket, BaseScraper
 
@@ -182,16 +183,26 @@ class PolymarketGammaScraper(BaseScraper):
 
     def __init__(self, timeout: int = 20):
         self.timeout = timeout
+        self.session = None
 
-    # Note: Making this async, but requests call is synchronous.
+    async def __aenter__(self):
+        self.session = aiohttp.ClientSession()
+        return self
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        if self.session:
+            await self.session.close()
+
     async def _fetch_page_data(self, limit: int, offset: int) -> List[Dict[str, Any]]:
+        if not self.session:
+            self.session = aiohttp.ClientSession()
+            
         params = {"limit": limit, "offset": offset}
         try:
-            # Synchronous call
-            response = requests.get(f"{self.BASE_URL}/markets", params=params, timeout=self.timeout)
-            response.raise_for_status()
-            return response.json()
-        except requests.exceptions.RequestException as e:
+            async with self.session.get(f"{self.BASE_URL}/markets", params=params, timeout=self.timeout) as response:
+                response.raise_for_status()
+                return await response.json()
+        except aiohttp.ClientError as e:
             print(f"Error fetching markets from Gamma API (offset {offset}): {e}")
             return []
         except json.JSONDecodeError as e:
@@ -271,8 +282,8 @@ if __name__ == "__main__":
         
         polymarket_list = await scraper.fetch_markets(
             only_open=fetch_active, 
-            max_requests=max_api_req, 
-            limit_per_page=limit_p_page
+            # max_requests=max_api_req, 
+            # limit_per_page=limit_p_page
         )
         
         end_time = time.time()

@@ -37,9 +37,29 @@ def save_markets_to_cache(markets: List[PooledMarket], platform: str) -> Path:
     
     return cache_file
 
+async def fetch_platform_markets(scraper, only_open: bool) -> tuple[str, List[PooledMarket]]:
+    """Fetch markets from a single platform."""
+    platform_name = scraper.__class__.__name__.replace("Scraper", "")
+    print(f"\nFetching markets from {platform_name}...")
+    start_time = time.time()
+    
+    try:
+        markets = await scraper.get_pooled_markets(only_open=only_open)
+        
+        # Save to cache
+        cache_file = save_markets_to_cache(markets, platform_name)
+        print(f"Saved {len(markets)} markets to cache: {cache_file}")
+        
+        end_time = time.time()
+        print(f"Fetched {len(markets)} markets from {platform_name} in {end_time - start_time:.2f} seconds")
+        return platform_name, markets
+    except Exception as e:
+        print(f"Error fetching from {platform_name}: {e}")
+        return platform_name, []
+
 async def fetch_all_markets(only_open: bool = True) -> List[PooledMarket]:
     """
-    Fetch markets from all available platforms.
+    Fetch markets from all available platforms in parallel.
     
     Args:
         only_open: If True, fetches only open markets.
@@ -54,26 +74,15 @@ async def fetch_all_markets(only_open: bool = True) -> List[PooledMarket]:
         PredictItScraper(),
     ]
     
-    all_markets: List[PooledMarket] = []
+    # Fetch from all platforms in parallel
+    results = await asyncio.gather(
+        *[fetch_platform_markets(scraper, only_open) for scraper in scrapers]
+    )
     
-    for scraper in scrapers:
-        try:
-            platform_name = scraper.__class__.__name__.replace("Scraper", "")
-            print(f"\nFetching markets from {platform_name}...")
-            start_time = time.time()
-            
-            markets = await scraper.get_pooled_markets(only_open=only_open)
-            
-            # Save to cache
-            cache_file = save_markets_to_cache(markets, platform_name)
-            print(f"Saved {len(markets)} markets to cache: {cache_file}")
-            
-            end_time = time.time()
-            print(f"Fetched {len(markets)} markets from {platform_name} in {end_time - start_time:.2f} seconds")
-            all_markets.extend(markets)
-            
-        except Exception as e:
-            print(f"Error fetching from {scraper.__class__.__name__}: {e}")
+    # Combine results
+    all_markets: List[PooledMarket] = []
+    for platform_name, markets in results:
+        all_markets.extend(markets)
     
     return all_markets
 

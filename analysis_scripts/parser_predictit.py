@@ -8,6 +8,7 @@ from pprint import pprint # For main example
 import requests # For the scraper
 import time
 import asyncio
+import aiohttp
 
 from common_markets import PooledMarket, BaseMarket, BaseScraper
 
@@ -148,19 +149,30 @@ class PredictItScraper(BaseScraper):
 
     def __init__(self, timeout: int = 15):
         self.timeout = timeout
-        self.session = requests.Session()
-        self.session.headers.update({
+        self.session = None
+
+    async def __aenter__(self):
+        self.session = aiohttp.ClientSession(headers={
             "User-Agent": "Mozilla/5.0 (compatible; PythonScraper/1.0)"
         })
+        return self
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        if self.session:
+            await self.session.close()
 
     async def _fetch_raw_data(self) -> Optional[Dict[str, Any]]:
         """Fetch raw data from PredictIt API."""
+        if not self.session:
+            self.session = aiohttp.ClientSession(headers={
+                "User-Agent": "Mozilla/5.0 (compatible; PythonScraper/1.0)"
+            })
+            
         try:
-            # Synchronous call within async method
-            response = self.session.get(self.API_URL, timeout=self.timeout)
-            response.raise_for_status()
-            return response.json()
-        except requests.exceptions.RequestException as e:
+            async with self.session.get(self.API_URL, timeout=self.timeout) as response:
+                response.raise_for_status()
+                return await response.json()
+        except aiohttp.ClientError as e:
             print(f"Error fetching data from PredictIt API: {e}")
             return None
         except json.JSONDecodeError as e:
