@@ -4,7 +4,7 @@ import logging
 import os
 import dotenv
 from datetime import datetime
-from typing import Literal  
+from typing import Literal
 
 dotenv.load_dotenv()
 
@@ -61,7 +61,9 @@ class TemplateForecaster(ForecastBot):
     Additionally OpenRouter has large rate limits immediately on account creation
     """
 
-    _max_concurrent_questions = 2  # Set this to whatever works for your search-provider/ai-model rate limits
+    _max_concurrent_questions = (
+        2  # Set this to whatever works for your search-provider/ai-model rate limits
+    )
     _concurrency_limiter = asyncio.Semaphore(_max_concurrent_questions)
 
     async def run_research(self, question: MetaculusQuestion) -> str:
@@ -77,9 +79,7 @@ class TemplateForecaster(ForecastBot):
                     question.question_text
                 )
             elif os.getenv("EXA_API_KEY"):
-                research = await self._call_exa_smart_searcher(
-                    question.question_text
-                )
+                research = await self._call_exa_smart_searcher(question.question_text)
             elif os.getenv("PERPLEXITY_API_KEY"):
                 research = await self._call_perplexity(question.question_text)
             elif os.getenv("OPENROUTER_API_KEY"):
@@ -94,9 +94,7 @@ class TemplateForecaster(ForecastBot):
                     f"No research provider found when processing question URL {question.page_url}. Will pass back empty string."
                 )
                 research = ""
-            logger.info(
-                f"Found Research for URL {question.page_url}:\n{research}"
-            )
+            logger.info(f"Found Research for URL {question.page_url}:\n{research}")
             return research
 
     async def _call_perplexity(
@@ -180,9 +178,7 @@ class TemplateForecaster(ForecastBot):
             The last thing you write is your final answer as: "Probability: ZZ%", 0-100, indicating the probability of a Yes outcome.
             """
         )
-        logger.info(
-            f"Full prompt:\n{prompt}"
-        )
+        logger.info(f"Full prompt:\n{prompt}")
         reasoning = await self.get_llm("default", "llm").invoke(prompt)
         prediction: float = PredictionExtractor.extract_last_percentage_value(
             reasoning, max_prediction=1, min_prediction=0
@@ -190,9 +186,7 @@ class TemplateForecaster(ForecastBot):
         logger.info(
             f"Forecasted URL {question.page_url} as {prediction} with reasoning:\n{reasoning}"
         )
-        return ReasonedPrediction(
-            prediction_value=prediction, reasoning=reasoning
-        )
+        return ReasonedPrediction(prediction_value=prediction, reasoning=reasoning)
 
     async def _run_forecast_on_multiple_choice(
         self, question: MultipleChoiceQuestion, research: str
@@ -237,9 +231,7 @@ class TemplateForecaster(ForecastBot):
             Make sure you indicate probability as a percentage, and that the sum of all probabilities is 100%.
             """
         )
-        logger.info(
-            f"Full prompt:\n{prompt}"
-        )
+        logger.info(f"Full prompt:\n{prompt}")
         reasoning = await self.get_llm("default", "llm").invoke(prompt)
         prediction: PredictedOptionList = (
             PredictionExtractor.extract_option_list_with_percentage_afterwards(
@@ -249,16 +241,15 @@ class TemplateForecaster(ForecastBot):
         logger.info(
             f"Forecasted URL {question.page_url} as {prediction} with reasoning:\n{reasoning}"
         )
-        return ReasonedPrediction(
-            prediction_value=prediction, reasoning=reasoning
-        )
+        return ReasonedPrediction(prediction_value=prediction, reasoning=reasoning)
 
     async def _run_forecast_on_numeric(
         self, question: NumericQuestion, research: str
     ) -> ReasonedPrediction[NumericDistribution]:
-        upper_bound_message, lower_bound_message = (
-            self._create_upper_and_lower_bound_messages(question)
-        )
+        (
+            upper_bound_message,
+            lower_bound_message,
+        ) = self._create_upper_and_lower_bound_messages(question)
         prompt = clean_indents(
             f"""
             You are a professional forecaster interviewing for a job.
@@ -312,22 +303,16 @@ class TemplateForecaster(ForecastBot):
             Make sure that the probability distribution has fat tails on both ends over the whole interval {question.lower_bound} to {question.upper_bound}.
             """
         )
-        logger.info(
-            f"Full prompt:\n{prompt}"
-        )
+        logger.info(f"Full prompt:\n{prompt}")
 
         reasoning = await self.get_llm("default", "llm").invoke(prompt)
-        prediction: NumericDistribution = (
-            PredictionExtractor.extract_numeric_distribution_from_list_of_percentile_number_and_probability(
-                reasoning, question
-            )
+        prediction: NumericDistribution = PredictionExtractor.extract_numeric_distribution_from_list_of_percentile_number_and_probability(
+            reasoning, question
         )
         logger.info(
             f"Forecasted URL {question.page_url} as {prediction.declared_percentiles} with reasoning:\n{reasoning}"
         )
-        return ReasonedPrediction(
-            prediction_value=prediction, reasoning=reasoning
-        )
+        return ReasonedPrediction(prediction_value=prediction, reasoning=reasoning)
 
     def _create_upper_and_lower_bound_messages(
         self, question: NumericQuestion
@@ -348,7 +333,6 @@ class TemplateForecaster(ForecastBot):
 
 
 if __name__ == "__main__":
-
     logging.basicConfig(
         level=logging.INFO,
         format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
@@ -370,9 +354,7 @@ if __name__ == "__main__":
         help="Specify the run mode (default: tournament)",
     )
     args = parser.parse_args()
-    run_mode: Literal["tournament", "quarterly_cup", "test_questions"] = (
-        args.mode
-    )
+    run_mode: Literal["tournament", "quarterly_cup", "test_questions"] = args.mode
     assert run_mode in [
         "tournament",
         "quarterly_cup",
@@ -389,7 +371,7 @@ if __name__ == "__main__":
         llms={  # choose your model names or GeneralLlm llms here, otherwise defaults will be chosen for you
             # "default": "openrouter/anthropic/claude-3.7-sonnet",
             "default": GeneralLlm(
-                model="openrouter/anthropic/claude-3.7-sonnet",  #"metaculus/anthropic/claude-3-5-sonnet-20241022",  # metaculus/anthropic
+                model="openrouter/anthropic/claude-3.7-sonnet",  # "metaculus/anthropic/claude-3-5-sonnet-20241022",  # metaculus/anthropic
                 temperature=0.3,
                 timeout=40,
                 allowed_tries=2,

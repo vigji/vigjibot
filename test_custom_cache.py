@@ -61,4 +61,4 @@ async def test_cache() -> None:
 
 
 if __name__ == "__main__":
-    asyncio.run(test_cache()) 
+    asyncio.run(test_cache())

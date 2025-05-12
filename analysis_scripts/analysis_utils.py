@@ -78,15 +78,17 @@ def get_all_runs_df(all_runs, BenchmarkForBot):
         print(df["bot_class"].unique())
 
         all_runs_df = pd.concat([all_runs_df, df])
-    
+
     print(len(all_runs_df["run_id"].unique()))
 
     return all_runs_df
+
 
 if __name__ == "__main__":
     from forecasting_tools.forecast_helpers.benchmark_displayer import get_json_files
     from forecasting_tools.data_models.benchmark_for_bot import BenchmarkForBot
     from pathlib import Path
+
     data_path = Path(__file__).parent.parent / "benchmarks"
     assert data_path.exists()
 

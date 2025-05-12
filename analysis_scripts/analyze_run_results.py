@@ -13,6 +13,7 @@ from forecasting_tools.forecast_helpers.benchmark_displayer import get_json_file
 from forecasting_tools.data_models.benchmark_for_bot import BenchmarkForBot
 from traitlets import default
 from analysis_utils import get_all_runs_df
+
 data_path = Path(__file__).parent.parent / "benchmarks"
 assert data_path.exists()
 
@@ -23,7 +24,7 @@ print(len(all_runs))
 
 for run in all_runs:
     pass
-    #benchmark = BenchmarkForBot.load_json_from_file_path(run)
+    # benchmark = BenchmarkForBot.load_json_from_file_path(run)
     # print(run, len(benchmark), len(benchmark[0].forecast_reports))
     # print(benchmark.explicit_name)
     # vprint(benchmark.forecast_reports[0].prediction)
@@ -38,11 +39,19 @@ print(all_df["bot_class"].unique())
 
 df_questions = pd.read_csv("questions_df.csv", index_col=0)
 
-all_df["question_cluster"] = all_df["question_id"].map(df_questions.set_index("question_id")["cluster"]).fillna(value=-1).astype(int).astype(str)
+all_df["question_cluster"] = (
+    all_df["question_id"]
+    .map(df_questions.set_index("question_id")["cluster"])
+    .fillna(value=-1)
+    .astype(int)
+    .astype(str)
+)
 # %%
 date_cutoff = datetime(2025, 4, 28)
 model_name = "00VanillaForecaster"
-df_models = all_df[(all_df.timestamp >= date_cutoff) & (all_df["bot_class"] == model_name)]
+df_models = all_df[
+    (all_df.timestamp >= date_cutoff) & (all_df["bot_class"] == model_name)
+]
 df_models
 
 # Define colors for question clusters
@@ -53,31 +62,32 @@ df_models
 
 # Create a figure with all models
 fig = go.Figure()
-colors = px.colors.qualitative.Set3[:10] + ["#000000"]  # Using Set3 palette from plotly plus black
+colors = px.colors.qualitative.Set3[:10] + [
+    "#000000"
+]  # Using Set3 palette from plotly plus black
 
 # Add traces for each model with low alpha
 for model_name in df_models["bot_model"].unique():
     sel_data = df_models[df_models["bot_model"] == model_name]
-    
+
     # Create hover text with all model predictions for each question
     hover_texts = []
     for _, row in sel_data.iterrows():
         question_id = row["question_id"]
         other_models = df_models[df_models["question_id"] == question_id]
         # Sort models by name and create predictions text
-        sorted_models = sorted(zip(other_models["bot_model"], other_models["my_prediction"]), 
-                             key=lambda x: x[0])
-        model_predictions = "<br>".join([
-            f"{m}: {p:.2f}" 
-            for m, p in sorted_models
-        ])
+        sorted_models = sorted(
+            zip(other_models["bot_model"], other_models["my_prediction"]),
+            key=lambda x: x[0],
+        )
+        model_predictions = "<br>".join([f"{m}: {p:.2f}" for m, p in sorted_models])
         hover_texts.append(
             f"Question: {row['question_text']}<br>"
             f"Community: {row['community_prediction']:.2f}<br>"
             f"Cluster: {row['question_cluster']}<br>"
             f"All model predictions:<br>{model_predictions}"
         )
-    
+
     cols = [colors[int(cluster)] for cluster in sel_data["question_cluster"]]
     fig.add_trace(
         go.Scatter(
@@ -91,12 +101,9 @@ for model_name in df_models["bot_model"].unique():
                 size=8,
                 opacity=0.3,
                 color=cols,
-                line=dict(  # Default no border
-                    width=0,
-                    color='black'
-                )
+                line=dict(width=0, color="black"),  # Default no border
             ),
-            visible=True
+            visible=True,
         )
     )
 
@@ -106,21 +113,26 @@ for i, model_name in enumerate(df_models["bot_model"].unique()):
     # Create a list of marker opacity values for all traces
     opacities = [0.3] * len(df_models["bot_model"].unique())
     opacities[i] = 1.0  # Set selected model to full opacity
-    
+
     # Create lists for line widths (0 for unselected, 1 for selected)
     line_widths = [0] * len(df_models["bot_model"].unique())
     line_widths[i] = 1
-    
+
     buttons.append(
         dict(
             label=model_name,
             method="update",
-            args=[{
-                "visible": [True] * len(df_models["bot_model"].unique()),
-                "marker.opacity": opacities,
-                "marker.size": [8 if j != i else 10 for j in range(len(df_models["bot_model"].unique()))],
-                "marker.line.width": line_widths  # Update line widths
-            }]
+            args=[
+                {
+                    "visible": [True] * len(df_models["bot_model"].unique()),
+                    "marker.opacity": opacities,
+                    "marker.size": [
+                        8 if j != i else 10
+                        for j in range(len(df_models["bot_model"].unique()))
+                    ],
+                    "marker.line.width": line_widths,  # Update line widths
+                }
+            ],
         )
     )
 
@@ -143,23 +155,19 @@ fig.update_layout(
     width=1200,  # Wider figure
     xaxis=dict(
         scaleanchor="y",  # This ensures the x-axis is scaled to match the y-axis
-        scaleratio=1,     # This ensures a 1:1 aspect ratio
+        scaleratio=1,  # This ensures a 1:1 aspect ratio
         range=[-0.1, 1.1],  # Fixed range to ensure consistent view
-        constrain="domain"  # This ensures the aspect ratio is maintained
+        constrain="domain",  # This ensures the aspect ratio is maintained
     ),
     yaxis=dict(
         range=[-0.1, 1.1],  # Fixed range to ensure consistent view
-        constrain="domain"  # This ensures the aspect ratio is maintained
+        constrain="domain",  # This ensures the aspect ratio is maintained
     ),
-    margin=dict(l=50, r=50, t=100, b=50)  # Add some margin for better visibility
+    margin=dict(l=50, r=50, t=100, b=50),  # Add some margin for better visibility
 )
 
 # Add diagonal line
-fig.add_shape(
-    type="line",
-    x0=0, y0=0, x1=1, y1=1,
-    line=dict(color="gray", dash="dash")
-)
+fig.add_shape(type="line", x0=0, y0=0, x1=1, y1=1, line=dict(color="gray", dash="dash"))
 
 fig.show()
 # %%
@@ -215,14 +223,16 @@ benchmarks  # .forecast_reports#[0].question.question_text
 # %%
 benchmark.forecast_reports[0]
 # %%
- # %%
+# %%
 date_cutoff = datetime(2025, 4, 26)
 model_name = "00VanillaForecaster"
 # df_models = all_df[(all_df.timestamp >= date_cutoff)]
 
 # %%
 # for each value of run_id, show number of unique combinations of bot_class and question_id
-all_df.groupby("run_id").apply(lambda x: (len(x["bot_class"].unique()),  len(x["question_id"].unique())))#.value_counts()
+all_df.groupby("run_id").apply(
+    lambda x: (len(x["bot_class"].unique()), len(x["question_id"].unique()))
+)  # .value_counts()
 # %%
 run_id = "/Users/vigji/code/vigjibot/benchmarks/benchmarks_2025-04-28_12-42-06"
 df_models = all_df[all_df["run_id"] == run_id]
@@ -230,11 +240,13 @@ df_models
 # %%
 fig = go.Figure()
 
-colors = px.colors.qualitative.Set3[:10] + ["#000000"]  # Using Set3 palette from plotly plus black
+colors = px.colors.qualitative.Set3[:10] + [
+    "#000000"
+]  # Using Set3 palette from plotly plus black
 
 dropdown_on = "bot_class"
 
-# Let's start from a simple plot. I select a model using the dropdown, and the plots diplaied 
+# Let's start from a simple plot. I select a model using the dropdown, and the plots diplaied
 # are updated by filtering only on that model.
 
 
@@ -254,7 +266,7 @@ for model in models:
             y=model_data["my_prediction"],
             mode="markers",
             name=model,
-            visible=False  # All traces start hidden
+            visible=False,  # All traces start hidden
         )
     )
 
@@ -263,13 +275,7 @@ buttons = []
 for i, model in enumerate(models):
     visibility = [False] * len(models)
     visibility[i] = True
-    buttons.append(
-        dict(
-            label=model,
-            method="update",
-            args=[{"visible": visibility}]
-        )
-    )
+    buttons.append(dict(label=model, method="update", args=[{"visible": visibility}]))
 
 # Update layout with dropdown
 fig_simple.update_layout(
@@ -285,7 +291,7 @@ fig_simple.update_layout(
     title="Simple Model Predictions vs Community Predictions",
     xaxis_title="Community Prediction",
     yaxis_title="Model Prediction",
-    showlegend=True
+    showlegend=True,
 )
 
 # Show the first model by default

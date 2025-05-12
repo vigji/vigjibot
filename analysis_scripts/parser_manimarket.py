@@ -158,7 +158,7 @@ class ManifoldMarket:
             comments_count=None,
             original_market_type=self.outcome_type,
             is_resolved=is_res,
-            raw_market_data=self
+            raw_market_data=self,
         )
 
 
@@ -170,7 +170,7 @@ class ManifoldScraper(BaseScraper):
         self.headers = {}
         if self.api_key:
             self.headers["Authorization"] = f"Key {self.api_key}"
- 
+
     async def __aenter__(self):
         self.session = aiohttp.ClientSession(headers=self.headers)
         return self
@@ -188,30 +188,36 @@ class ManifoldScraper(BaseScraper):
             print(f"Error creating market {data.get('id')}: {e}")
             return None
 
-    async def _fetch_raw_markets_list(self, limit: int = 1000, before: Optional[str] = None, only_open: bool = True) -> List[Dict[str, Any]]:
+    async def _fetch_raw_markets_list(
+        self, limit: int = 1000, before: Optional[str] = None, only_open: bool = True
+    ) -> List[Dict[str, Any]]:
         """Fetch a list of markets from API, with optional pagination and open status filter."""
         base_url = "https://api.manifold.markets/v0/markets"
         params: Dict[str, Any] = {
             "limit": limit,
             "sort": "created-time",
-            "order": "desc"
+            "order": "desc",
         }
         if before:
             params["before"] = before
-        
+
         all_markets_batch = []
         try:
-            async with self.session.get(base_url, params=params, headers=self.headers) as response:
+            async with self.session.get(
+                base_url, params=params, headers=self.headers
+            ) as response:
                 response.raise_for_status()
                 markets_page = await response.json()
                 if not markets_page:
-                    return [] # No more markets
-                
+                    return []  # No more markets
+
                 if only_open:
-                    all_markets_batch = [m for m in markets_page if not m.get("isResolved", False)]
+                    all_markets_batch = [
+                        m for m in markets_page if not m.get("isResolved", False)
+                    ]
                 else:
                     all_markets_batch = markets_page
-                    
+
         except aiohttp.ClientError as e:
             print(f"Error fetching markets list: {e}")
             return []
@@ -227,7 +233,9 @@ class ManifoldScraper(BaseScraper):
                 response.raise_for_status()
                 return await response.json()
         except aiohttp.ClientError as e:
-            print(f"Error fetching details for market {market_id} (original_id: {original_id}): {e}")
+            print(
+                f"Error fetching details for market {market_id} (original_id: {original_id}): {e}"
+            )
             return None
 
     async def fetch_markets(
@@ -235,7 +243,7 @@ class ManifoldScraper(BaseScraper):
         only_open: bool = True,
         min_unique_bettors: int = 50,
         min_volume: float = 0,
-        **kwargs: Any
+        **kwargs: Any,
     ) -> List[ManifoldMarket]:
         """Get filtered markets that meet the criteria."""
         if not self.session or self.session.closed:
@@ -249,19 +257,17 @@ class ManifoldScraper(BaseScraper):
 
         while True:
             current_batch = await self._fetch_raw_markets_list(
-                limit=1000, #batch_limit, 
-                before=last_market_id, 
-                only_open=only_open
+                limit=1000, before=last_market_id, only_open=only_open  # batch_limit,
             )
             if not current_batch:
                 break
             raw_markets_list_paginated.extend(current_batch)
             markets_fetched_count += len(current_batch)
-            
+
             last_market_id = current_batch[-1]["id"]
         if not raw_markets_list_paginated:
             return []
-        
+
         markets_to_fetch_details_for_ids: List[str] = []
         for m_summary in raw_markets_list_paginated:
             if only_open and m_summary.get("isResolved", False):
@@ -273,48 +279,56 @@ class ManifoldScraper(BaseScraper):
             if m_summary.get("outcomeType") not in ["BINARY", "MULTIPLE_CHOICE"]:
                 continue
             markets_to_fetch_details_for_ids.append(m_summary["id"])
-        
+
         processed_markets: List[ManifoldMarket] = []
-        for i in tqdm(range(0, len(markets_to_fetch_details_for_ids), self.max_concurrent), desc="Fetching Manifold market details"):
-            batch_ids = markets_to_fetch_details_for_ids[i:i + self.max_concurrent]
+        for i in tqdm(
+            range(0, len(markets_to_fetch_details_for_ids), self.max_concurrent),
+            desc="Fetching Manifold market details",
+        ):
+            batch_ids = markets_to_fetch_details_for_ids[i : i + self.max_concurrent]
             tasks = [self._get_market_details(market_id) for market_id in batch_ids]
             results = await asyncio.gather(*tasks, return_exceptions=True)
-            
+
             for market_id_original, full_data_or_exc in zip(batch_ids, results):
                 if isinstance(full_data_or_exc, Exception) or not full_data_or_exc:
                     continue
-                
+
                 market_obj = self._create_market(full_data_or_exc)
                 if market_obj:
-                    if only_open and (market_obj.resolution and market_obj.resolution != "MKT"):
+                    if only_open and (
+                        market_obj.resolution and market_obj.resolution != "MKT"
+                    ):
                         continue
-                    if market_obj.unique_bettor_count >= min_unique_bettors and \
-                       market_obj.volume >= min_volume:
+                    if (
+                        market_obj.unique_bettor_count >= min_unique_bettors
+                        and market_obj.volume >= min_volume
+                    ):
                         processed_markets.append(market_obj)
-        
+
         return processed_markets
 
 
 async def main():
     from pprint import pprint
     import time
+
     print("Starting ManifoldScraper example...")
     start_time = time.time()
     async with ManifoldScraper(max_concurrent=5) as client:
         open_markets = await client.fetch_markets(
-            only_open=True, 
+            only_open=True,
         )
         print(f"Found {len(open_markets)} OPEN markets matching criteria.")
         if open_markets:
-            print(f"First market (open): {open_markets[0].question}, Resolved: {open_markets[0].resolution is not None}")
-
+            print(
+                f"First market (open): {open_markets[0].question}, Resolved: {open_markets[0].resolution is not None}"
+            )
 
         manually_pooled = [m.to_pooled_market() for m in open_markets]
         print(f"converted {len(manually_pooled)} markets.")
 
     end_time = time.time()
     print(f"Time taken: {end_time - start_time} seconds")
-    
 
 
 if __name__ == "__main__":

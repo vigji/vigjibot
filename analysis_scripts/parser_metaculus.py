@@ -20,6 +20,7 @@ DEFAULT_FILTER = ApiFilter(
     # publish_time_gt=start_date,
 )
 
+
 @dataclass
 class MetaculusMarket(BaseMarket):
     id: str
@@ -37,17 +38,17 @@ class MetaculusMarket(BaseMarket):
         prob = question.community_prediction_at_access_time
         if prob is None:
             prob = 0.5
-        
+
         return cls(
             id=f"metaculus_{question.id_of_question}",
             question=question.question_text,
             outcomes=["yes", "no"],
-            outcome_probabilities=[prob, 1-prob],
+            outcome_probabilities=[prob, 1 - prob],
             formatted_outcomes=f"Yes {prob:.2f}; No {1-prob:.2f}",
             url=question.page_url,
             published_time=question.published_time,
             n_forecasters=question.num_forecasters,
-            raw_question=question
+            raw_question=question,
         )
 
     def to_pooled_market(self) -> PooledMarket:
@@ -65,8 +66,9 @@ class MetaculusMarket(BaseMarket):
             comments_count=None,  # Not directly available
             original_market_type="BINARY",  # Currently only handling binary questions
             is_resolved=None,  # Would need additional logic to determine
-            raw_market_data=self.raw_question
+            raw_market_data=self.raw_question,
         )
+
 
 class MyMetaculusApi(MetaculusApi):
     @classmethod
@@ -82,15 +84,17 @@ class MyMetaculusApi(MetaculusApi):
         page_num = 0
         while more_questions_available:
             offset = page_num * cls.MAX_QUESTIONS_FROM_QUESTION_API_PER_REQUEST
-            new_questions, continue_searching = (
-                cls._grab_filtered_questions_with_offset(filter, offset)
-            )
+            (
+                new_questions,
+                continue_searching,
+            ) = cls._grab_filtered_questions_with_offset(filter, offset)
             questions.extend(new_questions)
             if not continue_searching:
                 more_questions_available = False
             page_num += 1
             await asyncio.sleep(0.1)
         return questions
+
 
 class MetaculusScraper(BaseScraper):
     def __init__(self, filter: Optional[ApiFilter] = None):
@@ -105,14 +109,16 @@ class MetaculusScraper(BaseScraper):
         """Async context manager exit - nothing to clean up for Metaculus."""
         pass
 
-    async def fetch_markets(self, only_open: bool = True, **kwargs: Any) -> List[MetaculusMarket]:
+    async def fetch_markets(
+        self, only_open: bool = True, **kwargs: Any
+    ) -> List[MetaculusMarket]:
         """
         Fetch markets from Metaculus using the existing MyMetaculusApi logic.
-        
+
         Args:
             only_open: If True, only fetch open markets (handled via filter)
             **kwargs: Additional parameters (unused for Metaculus)
-            
+
         Returns:
             List of MetaculusMarket objects
         """
@@ -123,13 +129,14 @@ class MetaculusScraper(BaseScraper):
         markets = [MetaculusMarket.from_metaculus_question(q) for q in questions]
         return markets
 
+
 async def main():
     print("Starting MetaculusScraper example...")
     start_time = time.time()
-    
+
     async with MetaculusScraper() as scraper:
         markets = await scraper.get_pooled_markets(only_open=True)
-        
+
         end_time = time.time()
         print(f"Fetching took {end_time - start_time:.2f} seconds.")
         print(f"Fetched {len(markets)} Metaculus markets.")
@@ -137,13 +144,15 @@ async def main():
         if markets:
             print("\nDetails of the first pooled market:")
             pprint(markets[0].__dict__)
-            
+
             df_pooled = pd.DataFrame([pm.__dict__ for pm in markets])
             print(f"\nCreated DataFrame with {len(df_pooled)} pooled markets.")
         else:
             print("No markets were fetched from Metaculus.")
 
+
 if __name__ == "__main__":
     import time
     from pprint import pprint
+
     asyncio.run(main())

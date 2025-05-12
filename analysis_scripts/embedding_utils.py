@@ -1,4 +1,3 @@
-
 import os
 from openai import OpenAI
 import dotenv
@@ -20,8 +19,10 @@ openai = OpenAI(
 dotenv.load_dotenv(Path(__file__).parent.parent / ".env")
 os.getenv("DEEPINFRA_TOKEN")
 
+
 def preprocess_questions(questions_list):
     return [q.strip() for q in questions_list]
+
 
 def _embed_all_questions(questions_list):
     questions_list = preprocess_questions(questions_list)
@@ -30,11 +31,12 @@ def _embed_all_questions(questions_list):
     )
     return np.array([embedding.embedding for embedding in embeddings.data])
 
+
 def _embed_in_chunks(questions_list, chunk_size=200):
     questions_list = preprocess_questions(questions_list)
     embeddings_list = []
     for i in tqdm(range(0, len(questions_list), chunk_size)):
-        chunk = questions_list[i:i+chunk_size]
+        chunk = questions_list[i : i + chunk_size]
         embeddings = openai.embeddings.create(
             model=model, input=chunk, encoding_format="float"
         )
@@ -50,7 +52,6 @@ def embed_list(questions_list, chunk_size=None):
         embeddings = _embed_in_chunks(questions_list, chunk_size)
 
     return embeddings
-    
 
 
 def embed_list_with_cache(questions_list, cache_folder=None, chunk_size=None):
@@ -59,8 +60,10 @@ def embed_list_with_cache(questions_list, cache_folder=None, chunk_size=None):
         cache_folder = Path(__file__).parent / "embeddings_cache"
     cache_folder.mkdir(parents=True, exist_ok=True)
 
-    cache_file = cache_folder / f"{hashlib.sha256(str(questions_list).encode()).hexdigest()}.npy"
-    
+    cache_file = (
+        cache_folder / f"{hashlib.sha256(str(questions_list).encode()).hexdigest()}.npy"
+    )
+
     if cache_file.exists():
         print(f"Loading embeddings from cache file {cache_file}")
         return np.load(cache_file)
@@ -79,13 +82,17 @@ def embed_questions_df(question_df, question_column="question", cache_folder=Non
         chunk_size = None
 
     sanitized_questions = [q.strip() for q in questions_list]
-    embeddings_array = embed_list_with_cache(sanitized_questions, chunk_size=chunk_size, cache_folder=cache_folder)
+    embeddings_array = embed_list_with_cache(
+        sanitized_questions, chunk_size=chunk_size, cache_folder=cache_folder
+    )
     return pd.DataFrame(embeddings_array, index=question_df.index)
 
 
 def get_distance_matrix(combined_df):
     """Create a distance matrix of the embeddings."""
-    embeddings = combined_df.drop(['source_platform', 'question', 'formatted_outcomes'], axis=1)
+    embeddings = combined_df.drop(
+        ["source_platform", "question", "formatted_outcomes"], axis=1
+    )
     cosine_similarity_matrix = cosine_similarity(embeddings)
     distance_matrix = 1 - cosine_similarity_matrix
     np.fill_diagonal(distance_matrix, np.inf)
@@ -97,20 +104,32 @@ def get_closest_questions(row, distance_matrix, df, n_closest=20):
     """Get the 10 closest questions from the distance matrix."""
     question_index = row.name
     distances = distance_matrix[question_index]
-    
+
     # Keep getting more indices until we have enough Polymarket questions
     n_to_fetch = n_closest
     poly_questions = []
     closest_indices = np.argsort(distances)[:n_to_fetch]
     closest_questions = df.iloc[closest_indices]
-    poly_questions = [(q, a, source, distance) for q, a, source, distance in zip(closest_questions['question'].tolist(), closest_questions['formatted_outcomes'].tolist(), closest_questions['source_platform'].tolist(), distances[closest_indices]) if source != 'Metaculus']
-            
+    poly_questions = [
+        (q, a, source, distance)
+        for q, a, source, distance in zip(
+            closest_questions["question"].tolist(),
+            closest_questions["formatted_outcomes"].tolist(),
+            closest_questions["source_platform"].tolist(),
+            distances[closest_indices],
+        )
+        if source != "Metaculus"
+    ]
+
     return poly_questions[:n_closest]
 
 
 if __name__ == "__main__":
-    test_questions = ["What is the capital of France?", "What is the capital of Germany?"]*20
+    test_questions = [
+        "What is the capital of France?",
+        "What is the capital of Germany?",
+    ] * 20
     # a = embed_list(test_questions)
     a = embed_list(test_questions, chunk_size=10)
     print(a)
-    #b = embed_list_with_cache(test_questions, Path(__file__).parent / "cache")
+    # b = embed_list_with_cache(test_questions, Path(__file__).parent / "cache")
