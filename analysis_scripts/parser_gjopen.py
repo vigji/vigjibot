@@ -180,7 +180,7 @@ class GoodJudgmentOpenScraper(BaseScraper):
             raise ValueError("Login failed - please check credentials.")
         # print("Successfully logged in.")
 
-    async def _fetch_question_links_for_page(self, page: int) -> List[str]:
+    async def _fetch_question_links_for_page(self, page: int=5) -> List[str]:
         """Fetches all question links from a given results page."""
         url = f"{self.QUESTIONS_URL}?sort=predictors_count&sort_dir=desc&page={page}"
         try:
@@ -243,7 +243,7 @@ class GoodJudgmentOpenScraper(BaseScraper):
         Returns:
             A list of GJOpenMarket objects.
         """
-        max_pages = kwargs.get('max_pages', 15)
+        max_pages = kwargs.get('max_pages', 5)
         PAUSE_AFTER_PAGE = kwargs.get('pause_after_page', 0.6)
         PAUSE_AFTER_MARKET = kwargs.get('pause_after_market', 0.7)
         all_markets_data: List[GJOpenMarket] = []

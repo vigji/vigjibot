@@ -3,12 +3,39 @@ import pandas as pd
 from pathlib import Path
 from typing import List, Dict, Any
 import time
+import json
+from datetime import datetime
 
 from common_markets import PooledMarket
 from parser_gjopen import GoodJudgmentOpenScraper
 from parser_manimarket import ManifoldScraper
 from parser_polygamma import PolymarketGammaScraper
 from parser_predictit import PredictItScraper
+
+def save_markets_to_cache(markets: List[PooledMarket], platform: str) -> Path:
+    """Save markets to a cache file with timestamp."""
+    cache_dir = Path("data/cache")
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    cache_file = cache_dir / f"{platform}_{timestamp}.json"
+    
+    # Convert markets to dict, handling datetime serialization
+    market_dicts = []
+    for market in markets:
+        market_dict = market.__dict__.copy()
+        market_dict.pop('raw_market_data', None)
+        
+        # Convert datetime to string if present
+        if 'published_at' in market_dict and market_dict['published_at'] is not None:
+            market_dict['published_at'] = market_dict['published_at'].isoformat()
+        
+        market_dicts.append(market_dict)
+    
+    with open(cache_file, 'w') as f:
+        json.dump(market_dicts, f, indent=2)
+    
+    return cache_file
 
 async def fetch_all_markets(only_open: bool = True) -> List[PooledMarket]:
     """
@@ -36,6 +63,10 @@ async def fetch_all_markets(only_open: bool = True) -> List[PooledMarket]:
             start_time = time.time()
             
             markets = await scraper.get_pooled_markets(only_open=only_open)
+            
+            # Save to cache
+            cache_file = save_markets_to_cache(markets, platform_name)
+            print(f"Saved {len(markets)} markets to cache: {cache_file}")
             
             end_time = time.time()
             print(f"Fetched {len(markets)} markets from {platform_name} in {end_time - start_time:.2f} seconds")
@@ -65,9 +96,21 @@ def create_markets_dataframe(markets: List[PooledMarket]) -> pd.DataFrame:
     
     df = pd.DataFrame(market_dicts)
     
-    # Sort by published_at if available
+    # Handle published_at column if it exists
     if 'published_at' in df.columns:
-        df = df.sort_values('published_at', ascending=False)
+        try:
+            # First convert all to datetime, handling timezone-aware and naive
+            df['published_at'] = pd.to_datetime(df['published_at'])
+            
+            # Then convert all to timezone-naive
+            df['published_at'] = df['published_at'].apply(
+                lambda x: x.tz_localize(None) if x.tz is not None else x
+            )
+            
+            df = df.sort_values('published_at', ascending=False)
+        except Exception as e:
+            print(f"Warning: Error processing published_at column: {e}")
+            print("Continuing without sorting by published_at")
     
     return df
 

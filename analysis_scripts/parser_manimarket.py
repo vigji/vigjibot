@@ -75,7 +75,6 @@ class ManifoldMarket:
 
     @classmethod
     def from_api_data(cls, data: Dict[str, Any]) -> Optional["ManifoldMarket"]:
-        metadata = MarketMetadata.from_api_data(data)
         outcome_type = data["outcomeType"]
 
         outcomes = []

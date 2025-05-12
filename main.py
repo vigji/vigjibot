@@ -309,6 +309,7 @@ class TemplateForecaster(ForecastBot):
             "
 
             Write every percentile value only once not to confuse the parser, and do not include any other text after the percentiles in your answer.
+            Make sure that the probability distribution has fat tails on both ends.
             """
         )
         logger.info(
