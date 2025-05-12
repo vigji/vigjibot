@@ -11,6 +11,7 @@ from parser_gjopen import GoodJudgmentOpenScraper
 from parser_manimarket import ManifoldScraper
 from parser_polygamma import PolymarketGammaScraper
 from parser_predictit import PredictItScraper
+from parser_metaculus import MetaculusScraper
 
 def save_markets_to_cache(markets: List[PooledMarket], platform: str) -> Path:
     """Save markets to a cache file with timestamp."""
@@ -73,6 +74,7 @@ async def fetch_all_markets(only_open: bool = True) -> List[PooledMarket]:
         ManifoldScraper(),
         PolymarketGammaScraper(),
         PredictItScraper(),
+        MetaculusScraper(),
     ]
     
     # Fetch from all platforms in parallel
@@ -110,7 +112,7 @@ def create_markets_dataframe(markets: List[PooledMarket]) -> pd.DataFrame:
         market_dicts.append(market_dict)
     
     df = pd.DataFrame(market_dicts)
-    
+    df = df.drop_duplicates(subset=["question"])
     # Handle published_at column if it exists
     if 'published_at' in df.columns:
         try:

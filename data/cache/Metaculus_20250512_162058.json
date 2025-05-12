@@ -1,0 +1,3257 @@
+[
+  {
+    "id": "metaculus_36700",
+    "question": "Will conflict between India and Pakistan result in 100 deaths in May or June 2025?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.5,
+      0.5
+    ],
+    "formatted_outcomes": "Yes 0.50; No 0.50",
+    "url": "https://www.metaculus.com/questions/37328",
+    "published_at": "2025-05-05T14:55:34",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 130,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_35809",
+    "question": "Will the restrictions on Revolut's UK banking license be removed before July 26, 2025?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.64,
+      0.36
+    ],
+    "formatted_outcomes": "Yes 0.64; No 0.36",
+    "url": "https://www.metaculus.com/questions/36399",
+    "published_at": "2025-05-02T19:00:00",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 82,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_36709",
+    "question": "Will the Department of Homeland Security revoke or suspend the Student and Exchange Visitor Program (SEVP) certification for an Ivy League university before September 1, 2025?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.3,
+      0.7
+    ],
+    "formatted_outcomes": "Yes 0.30; No 0.70",
+    "url": "https://www.metaculus.com/questions/37347",
+    "published_at": "2025-05-01T15:51:02",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 44,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_36681",
+    "question": "Will  an attempt be made to fire Jerome Powell before the end of his term?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.15,
+      0.85
+    ],
+    "formatted_outcomes": "Yes 0.15; No 0.85",
+    "url": "https://www.metaculus.com/questions/37307",
+    "published_at": "2025-05-01T15:49:42",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 50,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_36531",
+    "question": "Will the US Supreme Court allow birthright citizenship to be restricted in 2025?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.18,
+      0.8200000000000001
+    ],
+    "formatted_outcomes": "Yes 0.18; No 0.82",
+    "url": "https://www.metaculus.com/questions/37153",
+    "published_at": "2025-05-01T15:21:44",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 55,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_35848",
+    "question": "Will the 2017 TCJA Individual Tax Cuts Be Extended Using a \"Current Policy\" Baseline in Senate Reconciliation?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.75,
+      0.25
+    ],
+    "formatted_outcomes": "Yes 0.75; No 0.25",
+    "url": "https://www.metaculus.com/questions/36459",
+    "published_at": "2025-04-10T18:33:14",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 65,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_35925",
+    "question": "In 2025, will IRA's Advanced Manufacturing Production Tax Credits (45\u03a7) start requiring the use of domestic materials or subcomponents?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.29,
+      0.71
+    ],
+    "formatted_outcomes": "Yes 0.29; No 0.71",
+    "url": "https://www.metaculus.com/questions/36490",
+    "published_at": "2025-04-10T18:28:29",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 56,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_35923",
+    "question": "In 2025, will the domestic content requirements become mandatory for obtaining the IRA's Investment Tax Credits (48\u0395)?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.25,
+      0.75
+    ],
+    "formatted_outcomes": "Yes 0.25; No 0.75",
+    "url": "https://www.metaculus.com/questions/36488",
+    "published_at": "2025-04-10T18:27:58",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 55,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_35922",
+    "question": "In 2025, will the domestic content requirements become mandatory for obtaining the IRA's Production Tax Credits (45Y)?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.24,
+      0.76
+    ],
+    "formatted_outcomes": "Yes 0.24; No 0.76",
+    "url": "https://www.metaculus.com/questions/36487",
+    "published_at": "2025-04-10T18:27:15",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 77,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_36309",
+    "question": "Will legislation enacted before January 1, 2026 eliminate the transferability of any of these clean energy tax credits (\u00a748E ITC,  \u00a745Y PTC, \u00a745X AMPC)?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.31,
+      0.69
+    ],
+    "formatted_outcomes": "Yes 0.31; No 0.69",
+    "url": "https://www.metaculus.com/questions/36880",
+    "published_at": "2025-04-10T18:21:18",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 58,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_35028",
+    "question": "Will global average wealth per adult increase in 2024 compared to 2023?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.9,
+      0.09999999999999998
+    ],
+    "formatted_outcomes": "Yes 0.90; No 0.10",
+    "url": "https://www.metaculus.com/questions/35578",
+    "published_at": "2025-02-27T13:39:19",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 372,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_35027",
+    "question": "Will India's nominal GDP surpass Japan's by the end of 2025?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.82,
+      0.18000000000000005
+    ],
+    "formatted_outcomes": "Yes 0.82; No 0.18",
+    "url": "https://www.metaculus.com/questions/35577",
+    "published_at": "2025-02-27T13:39:08",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 278,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_35026",
+    "question": "Will the world's five largest companies at the end of 2025 be in the tech sector?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.9,
+      0.09999999999999998
+    ],
+    "formatted_outcomes": "Yes 0.90; No 0.10",
+    "url": "https://www.metaculus.com/questions/35576",
+    "published_at": "2025-02-27T13:38:58",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 328,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_35025",
+    "question": "Will Microsoft stock close 2025 higher than it started?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.52,
+      0.48
+    ],
+    "formatted_outcomes": "Yes 0.52; No 0.48",
+    "url": "https://www.metaculus.com/questions/35575",
+    "published_at": "2025-02-27T13:38:48",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 312,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_35024",
+    "question": "Will Nvidia stock close 2025 higher than it started?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.38,
+      0.62
+    ],
+    "formatted_outcomes": "Yes 0.38; No 0.62",
+    "url": "https://www.metaculus.com/questions/35574",
+    "published_at": "2025-02-27T13:38:40",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 339,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_35023",
+    "question": "Will Bitcoin close 2025 higher than it started?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.48,
+      0.52
+    ],
+    "formatted_outcomes": "Yes 0.48; No 0.52",
+    "url": "https://www.metaculus.com/questions/35573",
+    "published_at": "2025-02-27T13:38:32",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 271,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_35022",
+    "question": "Will the IBEX 35 close 2025 higher than it started?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.75,
+      0.25
+    ],
+    "formatted_outcomes": "Yes 0.75; No 0.25",
+    "url": "https://www.metaculus.com/questions/35572",
+    "published_at": "2025-02-27T13:38:22",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 290,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_35021",
+    "question": "Will Inditex be among the top 10 EU companies by market capitalisation by the end of 2025?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.3,
+      0.7
+    ],
+    "formatted_outcomes": "Yes 0.30; No 0.70",
+    "url": "https://www.metaculus.com/questions/35571",
+    "published_at": "2025-02-27T13:38:08",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 255,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_35020",
+    "question": "Will housing prices in Madrid rise by more than 18% in 2025?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.203,
+      0.7969999999999999
+    ],
+    "formatted_outcomes": "Yes 0.20; No 0.80",
+    "url": "https://www.metaculus.com/questions/35570",
+    "published_at": "2025-02-27T13:37:59",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 269,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_35019",
+    "question": "Will Spain's economy grow more than the Eurozone's between Q3 2024 and Q3 2025?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.98,
+      0.020000000000000018
+    ],
+    "formatted_outcomes": "Yes 0.98; No 0.02",
+    "url": "https://www.metaculus.com/questions/35569",
+    "published_at": "2025-02-27T13:37:46",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 359,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_35018",
+    "question": "Will Grand Theft Auto VI be released in Europe in 2025?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.001,
+      0.999
+    ],
+    "formatted_outcomes": "Yes 0.00; No 1.00",
+    "url": "https://www.metaculus.com/questions/35567",
+    "published_at": "2025-02-27T13:37:37",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 307,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_35017",
+    "question": "Will Spain win the Eurovision Song Contest in 2025?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.001,
+      0.999
+    ],
+    "formatted_outcomes": "Yes 0.00; No 1.00",
+    "url": "https://www.metaculus.com/questions/35566",
+    "published_at": "2025-02-27T13:37:26",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 270,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_35015",
+    "question": "Will the highest-grossing film of 2025 be part of a franchise?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.92,
+      0.07999999999999996
+    ],
+    "formatted_outcomes": "Yes 0.92; No 0.08",
+    "url": "https://www.metaculus.com/questions/35564",
+    "published_at": "2025-02-27T13:37:12",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 284,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_35014",
+    "question": "Will Bluesky reach 100 million users before the end of 2025?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.11,
+      0.89
+    ],
+    "formatted_outcomes": "Yes 0.11; No 0.89",
+    "url": "https://www.metaculus.com/questions/35563",
+    "published_at": "2025-02-27T13:36:57",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 386,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_35013",
+    "question": "Will an AI achieve >85% performance on the FrontierMath benchmark before 2026?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.28,
+      0.72
+    ],
+    "formatted_outcomes": "Yes 0.28; No 0.72",
+    "url": "https://www.metaculus.com/questions/35562",
+    "published_at": "2025-02-27T13:36:47",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 270,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_35011",
+    "question": "Will Rafa\u0142 Trzaskowski be elected President of Poland in 2025?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.8,
+      0.19999999999999996
+    ],
+    "formatted_outcomes": "Yes 0.80; No 0.20",
+    "url": "https://www.metaculus.com/questions/35559",
+    "published_at": "2025-02-27T13:36:26",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 316,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_35010",
+    "question": "Will Pierre Poilievre be elected Prime Minister of Canada in 2025?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.001,
+      0.999
+    ],
+    "formatted_outcomes": "Yes 0.00; No 1.00",
+    "url": "https://www.metaculus.com/questions/35558",
+    "published_at": "2025-02-27T13:36:14",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 310,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_35009",
+    "question": "Will C\u0103lin Georgescu be elected President of Romania after the 2025 elections?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.001,
+      0.999
+    ],
+    "formatted_outcomes": "Yes 0.00; No 1.00",
+    "url": "https://www.metaculus.com/questions/35557",
+    "published_at": "2025-02-27T13:36:01",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 299,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_34756",
+    "question": "Will China invade Taiwan in 2025?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.03,
+      0.97
+    ],
+    "formatted_outcomes": "Yes 0.03; No 0.97",
+    "url": "https://www.metaculus.com/questions/35272",
+    "published_at": "2025-02-27T13:35:48",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 277,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_34755",
+    "question": "Will Anthropic announce an AI Claude 4 model in 2025?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.99,
+      0.010000000000000009
+    ],
+    "formatted_outcomes": "Yes 0.99; No 0.01",
+    "url": "https://www.metaculus.com/questions/35271",
+    "published_at": "2025-02-27T13:35:38",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 299,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_34754",
+    "question": "Will OpenAI announce a GPT-5 AI model in 2025?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.997,
+      0.0030000000000000027
+    ],
+    "formatted_outcomes": "Yes 1.00; No 0.00",
+    "url": "https://www.metaculus.com/questions/35270",
+    "published_at": "2025-02-27T13:35:27",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 373,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_34751",
+    "question": "Will FC Barcelona win both Liga F and the Women's Champions League in the 2024/25 season?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.62,
+      0.38
+    ],
+    "formatted_outcomes": "Yes 0.62; No 0.38",
+    "url": "https://www.metaculus.com/questions/35267",
+    "published_at": "2025-02-27T13:35:15",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 265,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_34750",
+    "question": "Will Kylian Mbapp\u00e9 be the top scorer in LaLiga EA Sports 2024/25?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.27,
+      0.73
+    ],
+    "formatted_outcomes": "Yes 0.27; No 0.73",
+    "url": "https://www.metaculus.com/questions/35266",
+    "published_at": "2025-02-27T13:35:03",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 259,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_34749",
+    "question": "Will Atl\u00e9tico de Madrid win the EA Sports LaLiga 2024/25?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.01,
+      0.99
+    ],
+    "formatted_outcomes": "Yes 0.01; No 0.99",
+    "url": "https://www.metaculus.com/questions/35265",
+    "published_at": "2025-02-27T13:34:51",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 265,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_34747",
+    "question": "Will Vox surpass the 27% voting intention among young people in Spain by the end of 2025?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.5,
+      0.5
+    ],
+    "formatted_outcomes": "Yes 0.50; No 0.50",
+    "url": "https://www.metaculus.com/questions/35263",
+    "published_at": "2025-02-27T13:31:49",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 272,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_34746",
+    "question": "Will the PSOE finish 2025 ahead of the PP in the polls average?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.12,
+      0.88
+    ],
+    "formatted_outcomes": "Yes 0.12; No 0.88",
+    "url": "https://www.metaculus.com/questions/35262",
+    "published_at": "2025-02-27T13:29:38",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 291,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_34752",
+    "question": "Will 2025 be the warmest year on record globally, according to the ECMWF?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.65,
+      0.35
+    ],
+    "formatted_outcomes": "Yes 0.65; No 0.35",
+    "url": "https://www.metaculus.com/questions/35268",
+    "published_at": "2025-02-27T12:57:56",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 565,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_34745",
+    "question": "Will Pedro S\u00e1nchez still be president of Spain at the end of 2025?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.98,
+      0.020000000000000018
+    ],
+    "formatted_outcomes": "Yes 0.98; No 0.02",
+    "url": "https://www.metaculus.com/questions/35261",
+    "published_at": "2025-02-27T12:57:46",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 455,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_34948",
+    "question": "Will the PEPFAR program cease to exist before January 1, 2026?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.34,
+      0.6599999999999999
+    ],
+    "formatted_outcomes": "Yes 0.34; No 0.66",
+    "url": "https://www.metaculus.com/questions/35481",
+    "published_at": "2025-02-26T11:56:01",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 42,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_34034",
+    "question": "Will the United States and Denmark announce formal negotiations over the possible transfer of sovereignty of Greenland to the United States before 2026?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.01,
+      0.99
+    ],
+    "formatted_outcomes": "Yes 0.01; No 0.99",
+    "url": "https://www.metaculus.com/questions/34519",
+    "published_at": "2025-01-31T20:50:40",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 104,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_34032",
+    "question": "Will the National Archivist certify and publish the Equal Rights Amendment to the Constitution by June 30, 2025?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.001,
+      0.999
+    ],
+    "formatted_outcomes": "Yes 0.00; No 1.00",
+    "url": "https://www.metaculus.com/questions/34517",
+    "published_at": "2025-01-31T20:50:29",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 71,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_34031",
+    "question": "Will the White House revoke the media credentials of reporters from two media outlets before 2026?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.75,
+      0.25
+    ],
+    "formatted_outcomes": "Yes 0.75; No 0.25",
+    "url": "https://www.metaculus.com/questions/34516",
+    "published_at": "2025-01-31T20:50:18",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 98,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_34030",
+    "question": "Will Elizabeth MacDonough, the current Senate parliamentarian, be removed or resign by June 30, 2025?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.08,
+      0.92
+    ],
+    "formatted_outcomes": "Yes 0.08; No 0.92",
+    "url": "https://www.metaculus.com/questions/34515",
+    "published_at": "2025-01-31T20:50:07",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 69,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_34029",
+    "question": "Will the Department of Justice announce an investigation or prosecution of a Democrat who served as president, vice president, congressional leader, whip, or impeachment manager before 2026?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.49,
+      0.51
+    ],
+    "formatted_outcomes": "Yes 0.49; No 0.51",
+    "url": "https://www.metaculus.com/questions/34514",
+    "published_at": "2025-01-31T20:49:56",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 92,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_34027",
+    "question": "Will President Trump formally invoke the Insurrection Act before 2026?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.17,
+      0.83
+    ],
+    "formatted_outcomes": "Yes 0.17; No 0.83",
+    "url": "https://www.metaculus.com/questions/34512",
+    "published_at": "2025-01-31T20:49:46",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 82,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_34026",
+    "question": "Will President Trump formally invoke his authority under the Constitution to adjourn Congress before 2026?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.06,
+      0.94
+    ],
+    "formatted_outcomes": "Yes 0.06; No 0.94",
+    "url": "https://www.metaculus.com/questions/34511",
+    "published_at": "2025-01-31T20:49:34",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 69,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_34025",
+    "question": "Will legislation be approved by at least one chamber of Congress in 2025 that partially or fully exempts at least one executive branch department, the CIA, or EPA from the Freedom of Information Act?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.11,
+      0.89
+    ],
+    "formatted_outcomes": "Yes 0.11; No 0.89",
+    "url": "https://www.metaculus.com/questions/34509",
+    "published_at": "2025-01-31T20:49:22",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 73,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_34021",
+    "question": "Will a federal court rule that the Trump administration violated the Impoundment Control Act in attempting to permanently withhold or cancel congressionally allocated funds by September 27, 2025?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.76,
+      0.24
+    ],
+    "formatted_outcomes": "Yes 0.76; No 0.24",
+    "url": "https://www.metaculus.com/questions/34505",
+    "published_at": "2025-01-31T20:48:16",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 81,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_34036",
+    "question": "Will the Department of Justice or Education open a civil compliance investigation into whether diversity-related programs at Harvard constitute illegal discrimination or preferences before 2026?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.62,
+      0.38
+    ],
+    "formatted_outcomes": "Yes 0.62; No 0.38",
+    "url": "https://www.metaculus.com/questions/34521",
+    "published_at": "2025-01-31T20:45:41",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 60,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_30969",
+    "question": "Will real-money betting on Polymarket or Manifold become legal in the United States in 2025?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.3,
+      0.7
+    ],
+    "formatted_outcomes": "Yes 0.30; No 0.70",
+    "url": "https://www.metaculus.com/questions/31340",
+    "published_at": "2025-01-10T20:43:15.126592",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 1134,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_30960",
+    "question": "Will OpenAI top the Chatbot Arena Leaderboard on December 31, 2025?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.4,
+      0.6
+    ],
+    "formatted_outcomes": "Yes 0.40; No 0.60",
+    "url": "https://www.metaculus.com/questions/31326",
+    "published_at": "2025-01-10T20:43:00",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 1323,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_30909",
+    "question": "Will Google's search market share drop below 85% in 2025?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.1,
+      0.9
+    ],
+    "formatted_outcomes": "Yes 0.10; No 0.90",
+    "url": "https://www.metaculus.com/questions/31258",
+    "published_at": "2025-01-10T20:42:47.549130",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 1344,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_30944",
+    "question": "Will inflation-adjusted gas prices rise in the US in 2025?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.5,
+      0.5
+    ],
+    "formatted_outcomes": "Yes 0.50; No 0.50",
+    "url": "https://www.metaculus.com/questions/31303",
+    "published_at": "2025-01-10T20:42:36.629744",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 1045,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_30952",
+    "question": "Will the 12-month percentage change in the US Consumer Price Index be lower in November 2025 than it was in November 2024?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.45,
+      0.55
+    ],
+    "formatted_outcomes": "Yes 0.45; No 0.55",
+    "url": "https://www.metaculus.com/questions/31315",
+    "published_at": "2025-01-10T20:42:24",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 981,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_30945",
+    "question": "Will Nvidia outperform the S&P 500 in 2025?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.5,
+      0.5
+    ],
+    "formatted_outcomes": "Yes 0.50; No 0.50",
+    "url": "https://www.metaculus.com/questions/31307",
+    "published_at": "2025-01-10T20:42:10.728016",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 1815,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_30920",
+    "question": "Will Maersk resume shipping in the Red Sea in 2025?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.6,
+      0.4
+    ],
+    "formatted_outcomes": "Yes 0.60; No 0.40",
+    "url": "https://www.metaculus.com/questions/31277",
+    "published_at": "2025-01-10T20:41:54.266131",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 1080,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_30919",
+    "question": "Will the poverty rate in Argentina be lower in the first half of 2025 compared to the second half of 2023?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.7,
+      0.30000000000000004
+    ],
+    "formatted_outcomes": "Yes 0.70; No 0.30",
+    "url": "https://www.metaculus.com/questions/31276",
+    "published_at": "2025-01-10T20:41:40.664018",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 1023,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_30939",
+    "question": "Will there be at least 1,000 deaths due to direct conflict between Israel and Iran in 2025?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.07,
+      0.9299999999999999
+    ],
+    "formatted_outcomes": "Yes 0.07; No 0.93",
+    "url": "https://www.metaculus.com/questions/31298",
+    "published_at": "2025-01-10T20:41:24.980761",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 1182,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_30937",
+    "question": "Will at least twice as many deportations by U.S. ICE occur in Fiscal Year 2025 compared with Fiscal Year 2024?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.2,
+      0.8
+    ],
+    "formatted_outcomes": "Yes 0.20; No 0.80",
+    "url": "https://www.metaculus.com/questions/31296",
+    "published_at": "2025-01-10T20:41:11.924050",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 1308,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_30959",
+    "question": "Will mifepristone become significantly restricted or illegal to prescribe for abortions across the US before 2026?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.15,
+      0.85
+    ],
+    "formatted_outcomes": "Yes 0.15; No 0.85",
+    "url": "https://www.metaculus.com/questions/31324",
+    "published_at": "2025-01-10T20:40:51.851975",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 1095,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_30980",
+    "question": "Will there be a leadership change in any of United States' foreign adversaries in 2025?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.3,
+      0.7
+    ],
+    "formatted_outcomes": "Yes 0.30; No 0.70",
+    "url": "https://www.metaculus.com/questions/31357",
+    "published_at": "2025-01-10T20:40:20.507710",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 1692,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_31196",
+    "question": "Will Israel establish direct governmental control of the Gaza Strip in 2025?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.07,
+      0.9299999999999999
+    ],
+    "formatted_outcomes": "Yes 0.07; No 0.93",
+    "url": "https://www.metaculus.com/questions/31620",
+    "published_at": "2025-01-10T20:03:12.921672",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 1105,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_30917",
+    "question": "Will a new war or a substantial escalation to a previous war kill at least 5,000 people in 2025?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.5,
+      0.5
+    ],
+    "formatted_outcomes": "Yes 0.50; No 0.50",
+    "url": "https://www.metaculus.com/questions/31273",
+    "published_at": "2025-01-10T20:02:58.738464",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 2070,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_30916",
+    "question": "Will real housing prices in the US increase more in 2025 compared to 2024?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.51,
+      0.49
+    ],
+    "formatted_outcomes": "Yes 0.51; No 0.49",
+    "url": "https://www.metaculus.com/questions/31271",
+    "published_at": "2025-01-10T20:02:34",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 1109,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_30966",
+    "question": "Will the Democrats be favored to win the 2028 US presidential election in the last week of 2025, according to Kalshi?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.56,
+      0.43999999999999995
+    ],
+    "formatted_outcomes": "Yes 0.56; No 0.44",
+    "url": "https://www.metaculus.com/questions/31336",
+    "published_at": "2025-01-10T20:02:03.207337",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 932,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_30906",
+    "question": "On December 31, 2025, will Google, Meta, Amazon, Tesla, or X accept crypto as a payment?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.5,
+      0.5
+    ],
+    "formatted_outcomes": "Yes 0.50; No 0.50",
+    "url": "https://www.metaculus.com/questions/31255",
+    "published_at": "2025-01-10T20:01:34.885355",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 2898,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_30970",
+    "question": "Will an application to ban AfD be filed at the Federal Constitutional Court before 2026?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.2,
+      0.8
+    ],
+    "formatted_outcomes": "Yes 0.20; No 0.80",
+    "url": "https://www.metaculus.com/questions/31341",
+    "published_at": "2025-01-10T20:00:49.081297",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 1239,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_30905",
+    "question": "Will the US unemployment rate in November 2025 be below the rate in November 2024?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.35,
+      0.65
+    ],
+    "formatted_outcomes": "Yes 0.35; No 0.65",
+    "url": "https://www.metaculus.com/questions/31253",
+    "published_at": "2025-01-10T20:00:28.231958",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 961,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_30904",
+    "question": "Will US federal interest rates at the end of 2025 be lower than at the end of 2024?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.75,
+      0.25
+    ],
+    "formatted_outcomes": "Yes 0.75; No 0.25",
+    "url": "https://www.metaculus.com/questions/31252",
+    "published_at": "2025-01-10T19:58:58.177750",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 1565,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_30860",
+    "question": "Will the next step for the medical approval of psychedelics for mental health be taken in the US in 2025?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.2,
+      0.8
+    ],
+    "formatted_outcomes": "Yes 0.20; No 0.80",
+    "url": "https://www.metaculus.com/questions/31134",
+    "published_at": "2024-12-20T20:18:14.009430",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 164,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_30857",
+    "question": "Will major components of the Affordable Care Act be repealed or curtailed before 2026?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.22,
+      0.78
+    ],
+    "formatted_outcomes": "Yes 0.22; No 0.78",
+    "url": "https://www.metaculus.com/questions/31130",
+    "published_at": "2024-12-20T20:15:41",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 1006,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_30853",
+    "question": "Will antimicrobial drug sales for use in livestock production increase by at least 0.5% in 2024 relative to 2023?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.6,
+      0.4
+    ],
+    "formatted_outcomes": "Yes 0.60; No 0.40",
+    "url": "https://www.metaculus.com/questions/31125",
+    "published_at": "2024-12-20T20:11:57.879711",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 134,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_30851",
+    "question": "Will Iran possess a nuclear weapon before 2026?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.07,
+      0.9299999999999999
+    ],
+    "formatted_outcomes": "Yes 0.07; No 0.93",
+    "url": "https://www.metaculus.com/questions/31123",
+    "published_at": "2024-12-20T20:02:23",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 1066,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_30849",
+    "question": "Will there be a bilateral ceasefire in the Russo-Ukraine conflict before 2026?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.47,
+      0.53
+    ],
+    "formatted_outcomes": "Yes 0.47; No 0.53",
+    "url": "https://www.metaculus.com/questions/31121",
+    "published_at": "2024-12-20T20:02:12",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 1731,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_30848",
+    "question": "Will Benjamin Netanyahu remain Prime Minister of Israel throughout 2025?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.82,
+      0.18000000000000005
+    ],
+    "formatted_outcomes": "Yes 0.82; No 0.18",
+    "url": "https://www.metaculus.com/questions/31118",
+    "published_at": "2024-12-20T20:02:00",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 1309,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_30847",
+    "question": "Will Argentina's year-over-year inflation be below 30% for December 2025?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.6,
+      0.4
+    ],
+    "formatted_outcomes": "Yes 0.60; No 0.40",
+    "url": "https://www.metaculus.com/questions/31117",
+    "published_at": "2024-12-20T20:01:47",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 1077,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_30840",
+    "question": "Will California\u2019s 2018 Proposition 12, \"Prevention of Cruelty to Farm Animals Act\", be in effect on January 1, 2026?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.76,
+      0.24
+    ],
+    "formatted_outcomes": "Yes 0.76; No 0.24",
+    "url": "https://www.metaculus.com/questions/31110",
+    "published_at": "2024-12-20T20:01:16.572281",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 144,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_30837",
+    "question": "Will at least one All-Star from the NFL, NBA, MLB, or NHL be banned or suspended for sports betting before 2026?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.08,
+      0.92
+    ],
+    "formatted_outcomes": "Yes 0.08; No 0.92",
+    "url": "https://www.metaculus.com/questions/31106",
+    "published_at": "2024-12-20T20:01:04.577507",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 177,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_30831",
+    "question": "Will bitcoin reach $200k in 2025?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.07,
+      0.9299999999999999
+    ],
+    "formatted_outcomes": "Yes 0.07; No 0.93",
+    "url": "https://www.metaculus.com/questions/31099",
+    "published_at": "2024-12-20T20:00:39.000073",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 397,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_30830",
+    "question": "Will Donald Trump have a positive net favorability rate on December 20, 2025, according to 538?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.08,
+      0.92
+    ],
+    "formatted_outcomes": "Yes 0.08; No 0.92",
+    "url": "https://www.metaculus.com/questions/31098",
+    "published_at": "2024-12-20T20:00:27",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 2037,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_30822",
+    "question": "Will the US eliminate the Department of Education through law or presidential reorganization before 2026?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.13,
+      0.87
+    ],
+    "formatted_outcomes": "Yes 0.13; No 0.87",
+    "url": "https://www.metaculus.com/questions/31076",
+    "published_at": "2024-12-20T20:00:15",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 1114,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_30815",
+    "question": "Will electric vehicles make up more than 10% of new light duty vehicle sales in the United States before October 2025?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.35,
+      0.65
+    ],
+    "formatted_outcomes": "Yes 0.35; No 0.65",
+    "url": "https://www.metaculus.com/questions/31068",
+    "published_at": "2024-12-20T20:00:04.210032",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 207,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_30802",
+    "question": "Will Jerome Powell cease to hold the office of Chair of the Federal Reserve before 2026?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.14,
+      0.86
+    ],
+    "formatted_outcomes": "Yes 0.14; No 0.86",
+    "url": "https://www.metaculus.com/questions/31045",
+    "published_at": "2024-12-20T19:59:52",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 1035,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_30801",
+    "question": "Will the US Congress pass a bill implementing Trump's tariff policies in 2025?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.1,
+      0.9
+    ],
+    "formatted_outcomes": "Yes 0.10; No 0.90",
+    "url": "https://www.metaculus.com/questions/31044",
+    "published_at": "2024-12-20T19:59:39",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 1162,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_30655",
+    "question": "Will a major AI lab claim in 2025 that they have developed AGI?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.1,
+      0.9
+    ],
+    "formatted_outcomes": "Yes 0.10; No 0.90",
+    "url": "https://www.metaculus.com/questions/30923",
+    "published_at": "2024-12-20T19:59:24.809172",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 334,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_30628",
+    "question": "Will Elon Musk cease to be an advisor to Donald Trump and face public criticism from Donald Trump before 2026?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.6,
+      0.4
+    ],
+    "formatted_outcomes": "Yes 0.60; No 0.40",
+    "url": "https://www.metaculus.com/questions/30891",
+    "published_at": "2024-12-20T19:58:23",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 1827,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_30732",
+    "question": "Will CDC report 10,000 or more H5 avian influenza cases in the United States before January 1, 2026?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.04,
+      0.96
+    ],
+    "formatted_outcomes": "Yes 0.04; No 0.96",
+    "url": "https://www.metaculus.com/questions/30960",
+    "published_at": "2024-12-12T23:23:20.256735",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 66,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_30731",
+    "question": "Will the US Department of Health and Human Services declare a public health emergency for H5 avian influenza before January 1, 2026?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.066,
+      0.9339999999999999
+    ],
+    "formatted_outcomes": "Yes 0.07; No 0.93",
+    "url": "https://www.metaculus.com/questions/30959",
+    "published_at": "2024-12-11T17:00:14.083662",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 48,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_30523",
+    "question": "Will the WHO declare H5 avian influenza to be a Public Health Emergency of International Concern (PHEIC) before 2026?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.08,
+      0.92
+    ],
+    "formatted_outcomes": "Yes 0.08; No 0.92",
+    "url": "https://www.metaculus.com/questions/30763",
+    "published_at": "2024-12-11T15:04:24",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 215,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_30605",
+    "question": "Will Elon Musk be the world's richest person on December 31, 2025?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.78,
+      0.21999999999999997
+    ],
+    "formatted_outcomes": "Yes 0.78; No 0.22",
+    "url": "https://www.metaculus.com/questions/30863",
+    "published_at": "2024-12-09T12:44:00",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 1380,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_29363",
+    "question": "Will the US break up Google before 1 January 2026?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.05,
+      0.95
+    ],
+    "formatted_outcomes": "Yes 0.05; No 0.95",
+    "url": "https://www.metaculus.com/questions/29501",
+    "published_at": "2024-11-09T02:06:19.743184",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 93,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_28996",
+    "question": "Will the US pass a federal bill on AI regulation before January 1, 2026?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.18,
+      0.8200000000000001
+    ],
+    "formatted_outcomes": "Yes 0.18; No 0.82",
+    "url": "https://www.metaculus.com/questions/29076",
+    "published_at": "2024-10-28T13:03:31.261514",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 104,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_29121",
+    "question": "Will Lula be a candidate for president of Brazil in 2026?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.55,
+      0.44999999999999996
+    ],
+    "formatted_outcomes": "Yes 0.55; No 0.45",
+    "url": "https://www.metaculus.com/questions/29214",
+    "published_at": "2024-10-25T16:39:00.228626",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 72,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_28952",
+    "question": "Will the World Health Organization designate a new COVID-19 Variant of Concern before July 1, 2025?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.002,
+      0.998
+    ],
+    "formatted_outcomes": "Yes 0.00; No 1.00",
+    "url": "https://www.metaculus.com/questions/29027",
+    "published_at": "2024-10-23T15:24:50",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 91,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_28746",
+    "question": "Will the inflation rate in Brazil be lower in 2025 than it was in 2024?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.34,
+      0.6599999999999999
+    ],
+    "formatted_outcomes": "Yes 0.34; No 0.66",
+    "url": "https://www.metaculus.com/questions/28747",
+    "published_at": "2024-10-07T17:45:38.361903",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 49,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_28570",
+    "question": "Will there be a global recession before 2026, according to the IMF?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.55,
+      0.44999999999999996
+    ],
+    "formatted_outcomes": "Yes 0.55; No 0.45",
+    "url": "https://www.metaculus.com/questions/28570",
+    "published_at": "2024-10-02T11:00:00",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 40,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_28072",
+    "question": "Will 1 million Russian personnel losses be reported before 2026?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.99,
+      0.010000000000000009
+    ],
+    "formatted_outcomes": "Yes 0.99; No 0.01",
+    "url": "https://www.metaculus.com/questions/28072",
+    "published_at": "2024-09-13T20:46:00",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 41,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_27902",
+    "question": "Will Russia repel Ukrainian forces from the Kursk Region before June 30, 2025?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.88,
+      0.12
+    ],
+    "formatted_outcomes": "Yes 0.88; No 0.12",
+    "url": "https://www.metaculus.com/questions/27902",
+    "published_at": "2024-09-11T21:00:00",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 91,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_27350",
+    "question": "Will Russia detonate a nuclear weapon in Ukraine or Ukrainian-held territory before 2026?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.001,
+      0.999
+    ],
+    "formatted_outcomes": "Yes 0.00; No 1.00",
+    "url": "https://www.metaculus.com/questions/27350",
+    "published_at": "2024-08-20T13:21:00",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 135,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_27148",
+    "question": "Will the 2024 mpox outbreak exceed the 2022-2023 outbreak in confirmed cases?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.014,
+      0.986
+    ],
+    "formatted_outcomes": "Yes 0.01; No 0.99",
+    "url": "https://www.metaculus.com/questions/27148",
+    "published_at": "2024-08-13T11:00:00",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 42,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_26721",
+    "question": "Will the S&P 500 Index increase over the year 2025?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.54,
+      0.45999999999999996
+    ],
+    "formatted_outcomes": "Yes 0.54; No 0.46",
+    "url": "https://www.metaculus.com/questions/26721",
+    "published_at": "2024-07-30T11:00:00",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 70,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_26272",
+    "question": "Will the winning bot in any Quarterly AI Benchmarking tournament beat the human Pro aggregate before Q3 of 2025?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.23,
+      0.77
+    ],
+    "formatted_outcomes": "Yes 0.23; No 0.77",
+    "url": "https://www.metaculus.com/questions/26272",
+    "published_at": "2024-07-20T12:00:00",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 40,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_26328",
+    "question": "Will there be any reported human-to-human transmission of highly pathogenic avian influenza H5N1 globally before 2026?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.13,
+      0.87
+    ],
+    "formatted_outcomes": "Yes 0.13; No 0.87",
+    "url": "https://www.metaculus.com/questions/26328",
+    "published_at": "2024-07-17T19:00:00",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 168,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_26114",
+    "question": "Will French president Emmanuel Macron call another snap legislative election before 2026?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.3,
+      0.7
+    ],
+    "formatted_outcomes": "Yes 0.30; No 0.70",
+    "url": "https://www.metaculus.com/questions/26114",
+    "published_at": "2024-07-16T11:00:00",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 111,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_20953",
+    "question": "Will an aerial drone terrorist attack result in an injury or death in the United States before 2026?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.2,
+      0.8
+    ],
+    "formatted_outcomes": "Yes 0.20; No 0.80",
+    "url": "https://www.metaculus.com/questions/20953",
+    "published_at": "2024-03-25T18:03:00",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 56,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_21856",
+    "question": "Will Bryan Caplan win his bet that Iran will not possess a nuclear weapon on July 31, 2025?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.98,
+      0.020000000000000018
+    ],
+    "formatted_outcomes": "Yes 0.98; No 0.02",
+    "url": "https://www.metaculus.com/questions/21856",
+    "published_at": "2024-03-21T17:48:00",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 74,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_21531",
+    "question": "Will the bubble in the Magnificent Seven pop before 2026?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.2,
+      0.8
+    ],
+    "formatted_outcomes": "Yes 0.20; No 0.80",
+    "url": "https://www.metaculus.com/questions/21531",
+    "published_at": "2024-03-06T15:06:00",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 72,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_21270",
+    "question": "Will OpenAI, Google DeepMind, or Anthropic announce that they are pausing all training runs above a certain size for safety reasons, before 2026?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.03,
+      0.97
+    ],
+    "formatted_outcomes": "Yes 0.03; No 0.97",
+    "url": "https://www.metaculus.com/questions/21270",
+    "published_at": "2024-03-01T12:00:00",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 86,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_19878",
+    "question": "Will China be able to mass produce humanoid robots by the end of 2025?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.89,
+      0.10999999999999999
+    ],
+    "formatted_outcomes": "Yes 0.89; No 0.11",
+    "url": "https://www.metaculus.com/questions/19878",
+    "published_at": "2024-02-25T02:58:00",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 100,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_21167",
+    "question": "Will 1 Euro be worth less than 1 US Dollar before 2026?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.25,
+      0.75
+    ],
+    "formatted_outcomes": "Yes 0.25; No 0.75",
+    "url": "https://www.metaculus.com/questions/21167",
+    "published_at": "2024-01-25T19:57:00",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 62,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_20172",
+    "question": "Before 2026, will OpenAI's commercial operations cease to be governed by its nonprofit board of directors?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.08,
+      0.92
+    ],
+    "formatted_outcomes": "Yes 0.08; No 0.92",
+    "url": "https://www.metaculus.com/questions/20172",
+    "published_at": "2024-01-13T15:58:00",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 64,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_20522",
+    "question": "If Trump is elected president in 2024, will AI foundation model reporting requirements remain in place in the US at the end of 2025?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.19,
+      0.81
+    ],
+    "formatted_outcomes": "Yes 0.19; No 0.81",
+    "url": "https://www.metaculus.com/questions/20522",
+    "published_at": "2023-12-11T22:00:00",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 40,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_20333",
+    "question": "Will a new SARS-CoV-2 variant classified as a VOC or worse result in at least 20,000 daily incident COVID hospitalizations in the US before July 1, 2025?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.002,
+      0.998
+    ],
+    "formatted_outcomes": "Yes 0.00; No 1.00",
+    "url": "https://www.metaculus.com/questions/20333",
+    "published_at": "2023-12-01T22:30:00",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 46,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_19949",
+    "question": "Will at least 500,000 Palestinians be displaced from Gaza before December 31st, 2025?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.18,
+      0.8200000000000001
+    ],
+    "formatted_outcomes": "Yes 0.18; No 0.82",
+    "url": "https://www.metaculus.com/questions/19949",
+    "published_at": "2023-11-24T21:15:00",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 74,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_19999",
+    "question": "Will Sam Altman be indicted before 2026?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.01,
+      0.99
+    ],
+    "formatted_outcomes": "Yes 0.01; No 0.99",
+    "url": "https://www.metaculus.com/questions/19999",
+    "published_at": "2023-11-18T01:30:00",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 57,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_19724",
+    "question": "Will Russia have significantly expanded its controlled territory in Ukraine on January 1, 2026?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.16,
+      0.84
+    ],
+    "formatted_outcomes": "Yes 0.16; No 0.84",
+    "url": "https://www.metaculus.com/questions/19724",
+    "published_at": "2023-11-02T19:14:00",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 378,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_17791",
+    "question": "Will Ukraine launch a nuclear weapons program before 2026?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.01,
+      0.99
+    ],
+    "formatted_outcomes": "Yes 0.01; No 0.99",
+    "url": "https://www.metaculus.com/questions/17791",
+    "published_at": "2023-09-02T22:08:00",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 202,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_17763",
+    "question": "Will Threads report more monthly active users than Twitter before 2026?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.01,
+      0.99
+    ],
+    "formatted_outcomes": "Yes 0.01; No 0.99",
+    "url": "https://www.metaculus.com/questions/17763",
+    "published_at": "2023-07-23T14:51:00",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 102,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_17917",
+    "question": "Will evidence of alien technology be recovered near the IM1 crash site before 2026?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.001,
+      0.999
+    ],
+    "formatted_outcomes": "Yes 0.00; No 1.00",
+    "url": "https://www.metaculus.com/questions/17917",
+    "published_at": "2023-07-21T19:16:00",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 56,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_17714",
+    "question": "Will Norway announce an official referendum about EU accession before the next parliamentary election in September 2025?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.07,
+      0.9299999999999999
+    ],
+    "formatted_outcomes": "Yes 0.07; No 0.93",
+    "url": "https://www.metaculus.com/questions/17714",
+    "published_at": "2023-07-19T23:51:00",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 46,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_17519",
+    "question": "Will the UK housing market crash before July 2025?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.001,
+      0.999
+    ],
+    "formatted_outcomes": "Yes 0.00; No 1.00",
+    "url": "https://www.metaculus.com/questions/17519",
+    "published_at": "2023-06-22T16:51:00",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 115,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_17432",
+    "question": "Will an AI system solve one of the remaining Millennium Prize Problems before July 2025?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.003,
+      0.997
+    ],
+    "formatted_outcomes": "Yes 0.00; No 1.00",
+    "url": "https://www.metaculus.com/questions/17432",
+    "published_at": "2023-06-20T15:09:00",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 86,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_17520",
+    "question": "Will the percent of U.S. workers employed in white-collar jobs drop at least 2 percentage points below the 2022 level before 2026?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.07,
+      0.9299999999999999
+    ],
+    "formatted_outcomes": "Yes 0.07; No 0.93",
+    "url": "https://www.metaculus.com/questions/17520",
+    "published_at": "2023-06-20T08:35:00",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 77,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_17443",
+    "question": "Will OpenAI release an LLM product or API that hallucinates 5x less than GPT-4 did when it was released, by June 30, 2025?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.15,
+      0.85
+    ],
+    "formatted_outcomes": "Yes 0.15; No 0.85",
+    "url": "https://www.metaculus.com/questions/17443",
+    "published_at": "2023-06-12T20:29:00",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 64,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_17408",
+    "question": "Will a US court fine, or order a company to pay to claimants, >=$100M because of how they used data to train a large AI model before 2026?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.1,
+      0.9
+    ],
+    "formatted_outcomes": "Yes 0.10; No 0.90",
+    "url": "https://www.metaculus.com/questions/17408",
+    "published_at": "2023-06-10T19:54:00",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 62,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_17373",
+    "question": "Will the U.S. have passed legislation that requires cybersecurity around AI models before 2026?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.57,
+      0.43000000000000005
+    ],
+    "formatted_outcomes": "Yes 0.57; No 0.43",
+    "url": "https://www.metaculus.com/questions/17373",
+    "published_at": "2023-06-07T22:23:00",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 69,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_17095",
+    "question": "Will the US place restrictions on the total compute capacity individuals or companies are allowed to have before 2026?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.01,
+      0.99
+    ],
+    "formatted_outcomes": "Yes 0.01; No 0.99",
+    "url": "https://www.metaculus.com/questions/17095",
+    "published_at": "2023-05-17T15:19:00",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 41,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_17100",
+    "question": "Will the US restrict access outside the US to some APIs to generative AI before 2026?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.18,
+      0.8200000000000001
+    ],
+    "formatted_outcomes": "Yes 0.18; No 0.82",
+    "url": "https://www.metaculus.com/questions/17100",
+    "published_at": "2023-05-17T15:19:00",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 49,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_17102",
+    "question": "Will the US enact export controls for some generative AI software before 2026?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.75,
+      0.25
+    ],
+    "formatted_outcomes": "Yes 0.75; No 0.25",
+    "url": "https://www.metaculus.com/questions/17102",
+    "published_at": "2023-05-17T15:19:00",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 78,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_17104",
+    "question": "Will three or more Frontier AI Labs issue a joint statement committing to constrain their AI's capabilities before 2026?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.1,
+      0.9
+    ],
+    "formatted_outcomes": "Yes 0.10; No 0.90",
+    "url": "https://www.metaculus.com/questions/17104",
+    "published_at": "2023-05-17T15:18:00",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 59,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_17110",
+    "question": "Will the US or California require licenses to train large AI models before 2026?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.0988762751,
+      0.9011237249
+    ],
+    "formatted_outcomes": "Yes 0.10; No 0.90",
+    "url": "https://www.metaculus.com/questions/17110",
+    "published_at": "2023-05-17T15:18:00",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 45,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_15602",
+    "question": "Will ARC find that GPT-5 has autonomous replication capabilities?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.15,
+      0.85
+    ],
+    "formatted_outcomes": "Yes 0.15; No 0.85",
+    "url": "https://www.metaculus.com/questions/15602",
+    "published_at": "2023-03-26T09:06:00",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 104,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_13922",
+    "question": "Will Australia enter a recession before 2026?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.25,
+      0.75
+    ],
+    "formatted_outcomes": "Yes 0.25; No 0.75",
+    "url": "https://www.metaculus.com/questions/13922",
+    "published_at": "2022-12-12T06:00:00",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 43,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_10176",
+    "question": "Will more than 34 countries have committed to a stringent anti-solar-geoengineering pact before 2026?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.04,
+      0.96
+    ],
+    "formatted_outcomes": "Yes 0.04; No 0.96",
+    "url": "https://www.metaculus.com/questions/10176",
+    "published_at": "2022-11-03T04:00:00",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 42,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_13467",
+    "question": "Will at least ten countries have committed to any diplomatic agreement restricting solar geoengineering, before 2026?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.06,
+      0.94
+    ],
+    "formatted_outcomes": "Yes 0.06; No 0.94",
+    "url": "https://www.metaculus.com/questions/13467",
+    "published_at": "2022-11-03T04:00:00",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 60,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_12613",
+    "question": "Will Boris Johnson return as the leader of the UK Conservative Party before 2026?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.01,
+      0.99
+    ],
+    "formatted_outcomes": "Yes 0.01; No 0.99",
+    "url": "https://www.metaculus.com/questions/12613",
+    "published_at": "2022-10-27T05:00:00",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 94,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_12539",
+    "question": "Will Pierre Poilievre become Prime Minister of Canada before 2026?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.01,
+      0.99
+    ],
+    "formatted_outcomes": "Yes 0.01; No 0.99",
+    "url": "https://www.metaculus.com/questions/12539",
+    "published_at": "2022-10-04T04:00:00",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 146,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_12348",
+    "question": "Will 3M file for bankruptcy before 2026?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.01,
+      0.99
+    ],
+    "formatted_outcomes": "Yes 0.01; No 0.99",
+    "url": "https://www.metaculus.com/questions/12348",
+    "published_at": "2022-09-02T21:00:00",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 51,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_12112",
+    "question": "Will Beyond Meat file for bankruptcy protection before 2026?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.43,
+      0.5700000000000001
+    ],
+    "formatted_outcomes": "Yes 0.43; No 0.57",
+    "url": "https://www.metaculus.com/questions/12112",
+    "published_at": "2022-08-08T21:00:00",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 81,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_12117",
+    "question": "Will Virgin Galactic file for bankruptcy protection before 2026?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.5,
+      0.5
+    ],
+    "formatted_outcomes": "Yes 0.50; No 0.50",
+    "url": "https://www.metaculus.com/questions/12117",
+    "published_at": "2022-08-08T21:00:00",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 92,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_10962",
+    "question": "Will US offer India a nuclear submarine before 2026?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.02,
+      0.98
+    ],
+    "formatted_outcomes": "Yes 0.02; No 0.98",
+    "url": "https://www.metaculus.com/questions/10962",
+    "published_at": "2022-06-13T05:00:00",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 47,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_10359",
+    "question": "Will Turkey's annual inflation fall to 4% or less before 2025?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.01,
+      0.99
+    ],
+    "formatted_outcomes": "Yes 0.01; No 0.99",
+    "url": "https://www.metaculus.com/questions/10359",
+    "published_at": "2022-03-23T05:00:00",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 75,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_10220",
+    "question": "Will 95% or more of Nigerians have a bank account before 2025?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.01,
+      0.99
+    ],
+    "formatted_outcomes": "Yes 0.01; No 0.99",
+    "url": "https://www.metaculus.com/questions/10220",
+    "published_at": "2022-03-12T06:00:00",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 85,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_7792",
+    "question": "Will armed conflicts between the Republic of China (Taiwan) and the People's Republic of China (PRC) lead to at least 100 deaths before 2026?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.06,
+      0.94
+    ],
+    "formatted_outcomes": "Yes 0.06; No 0.94",
+    "url": "https://www.metaculus.com/questions/7792",
+    "published_at": "2021-08-23T07:00:00",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 238,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_7444",
+    "question": "Will Elon Musk be the richest person in the world on December 31, 2025?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.8,
+      0.19999999999999996
+    ],
+    "formatted_outcomes": "Yes 0.80; No 0.20",
+    "url": "https://www.metaculus.com/questions/7444",
+    "published_at": "2021-06-27T07:00:00",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 283,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_7335",
+    "question": "Will Freedom House report that internet freedom has declined every year until 2025?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.95,
+      0.050000000000000044
+    ],
+    "formatted_outcomes": "Yes 0.95; No 0.05",
+    "url": "https://www.metaculus.com/questions/7335",
+    "published_at": "2021-06-20T07:00:00",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 102,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_7082",
+    "question": "Will Reddit power user \"maxwellhill\" be confirmed to be Ghislaine Maxwell before 2026?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.09,
+      0.91
+    ],
+    "formatted_outcomes": "Yes 0.09; No 0.91",
+    "url": "https://www.metaculus.com/questions/7082",
+    "published_at": "2021-05-14T07:00:00",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 155,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_6455",
+    "question": "Will the EU have a mandatory multi-tiered animal welfare labelling scheme in place by 2025?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.05,
+      0.95
+    ],
+    "formatted_outcomes": "Yes 0.05; No 0.95",
+    "url": "https://www.metaculus.com/questions/6455",
+    "published_at": "2021-02-12T23:00:00",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 45,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_5768",
+    "question": "Will any senior executives of these major public companies be imprisoned for corporate crimes before 2026?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.24,
+      0.76
+    ],
+    "formatted_outcomes": "Yes 0.24; No 0.76",
+    "url": "https://www.metaculus.com/questions/5768",
+    "published_at": "2021-01-13T03:00:00",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 138,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_4919",
+    "question": "At the end of 2025, will any of GiveWell's top charities perform mass deworming as their primary intervention?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.42,
+      0.5800000000000001
+    ],
+    "formatted_outcomes": "Yes 0.42; No 0.58",
+    "url": "https://www.metaculus.com/questions/4919",
+    "published_at": "2020-08-04T23:00:00",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 68,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_4892",
+    "question": "Will transformer derived architectures still be state of the art for language modeling in December 2025?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.9,
+      0.09999999999999998
+    ],
+    "formatted_outcomes": "Yes 0.90; No 0.10",
+    "url": "https://www.metaculus.com/questions/4892",
+    "published_at": "2020-07-27T07:00:00",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 64,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_4882",
+    "question": "Will any of these Reddit alternatives be more popular than Reddit by 2026?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.01,
+      0.99
+    ],
+    "formatted_outcomes": "Yes 0.01; No 0.99",
+    "url": "https://www.metaculus.com/questions/4882",
+    "published_at": "2020-07-26T23:00:00",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 105,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_2937",
+    "question": "Will the number of deaths from antibiotic-resistant infections per year double by December 31, 2025?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.1,
+      0.9
+    ],
+    "formatted_outcomes": "Yes 0.10; No 0.90",
+    "url": "https://www.metaculus.com/questions/2937",
+    "published_at": "2019-07-15T22:00:00",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 146,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_1433",
+    "question": "Will the fraction of American 18-24 year-olds enrolled in colleges in 2025 be \u226510% less than were enrolled in 2015?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.12,
+      0.88
+    ],
+    "formatted_outcomes": "Yes 0.12; No 0.88",
+    "url": "https://www.metaculus.com/questions/1433",
+    "published_at": "2018-09-15T07:00:00",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 146,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  },
+  {
+    "id": "metaculus_1402",
+    "question": "Will Parker Solar Probe survive its 24 loops around the sun while getting just a few million miles away from the surface of our star?",
+    "outcomes": [
+      "yes",
+      "no"
+    ],
+    "outcome_probabilities": [
+      0.9,
+      0.09999999999999998
+    ],
+    "formatted_outcomes": "Yes 0.90; No 0.10",
+    "url": "https://www.metaculus.com/questions/1402",
+    "published_at": "2018-09-05T07:00:00",
+    "source_platform": "Metaculus",
+    "volume": null,
+    "n_forecasters": 130,
+    "comments_count": null,
+    "original_market_type": "BINARY",
+    "is_resolved": null
+  }
+]

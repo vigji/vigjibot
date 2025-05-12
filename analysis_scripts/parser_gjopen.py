@@ -262,16 +262,9 @@ class GoodJudgmentOpenScraper(BaseScraper):
         PAUSE_AFTER_MARKET = kwargs.get('pause_after_market', 0.7)
         all_markets_data: List[GJOpenMarket] = []
 
-        if only_open:
-            # print("Note: 'only_open' is set to True for GJOpen, but API doesn't filter by open status when listing.")
-            # Post-filtering would be needed if GJOpenMarket had a reliable 'is_resolved' field from source.
-            # Currently, PooledMarket conversion for GJOpen sets is_resolved=None.
-            pass
-
         for page_num in tqdm(range(1, MAX_PAGES + 1), desc="Scraping GJOpen pages"):
             question_links = await self._fetch_question_links_for_page(page_num)
             if not question_links:
-                # print(f"No more question links found on page {page_num}. Stopping.")
                 break 
                 
             market_objs_on_page: List[GJOpenMarket] = []
@@ -292,8 +285,7 @@ class GoodJudgmentOpenScraper(BaseScraper):
                  break
             
             all_markets_data.extend(market_objs_on_page)
-
-            print([market.predictors_count < min_n_forecasters for market in market_objs_on_page])
+            # Pages are sorted by number of forecasters, so we can break if we've seen enough
             if all(market.predictors_count < min_n_forecasters for market in market_objs_on_page):
                 break
             
