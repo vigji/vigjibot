@@ -257,7 +257,7 @@ class GoodJudgmentOpenScraper(BaseScraper):
         Returns:
             A list of GJOpenMarket objects.
         """
-        max_pages = kwargs.get('max_pages', 5)
+        MAX_PAGES = 20
         PAUSE_AFTER_PAGE = kwargs.get('pause_after_page', 0.6)
         PAUSE_AFTER_MARKET = kwargs.get('pause_after_market', 0.7)
         all_markets_data: List[GJOpenMarket] = []
@@ -268,7 +268,7 @@ class GoodJudgmentOpenScraper(BaseScraper):
             # Currently, PooledMarket conversion for GJOpen sets is_resolved=None.
             pass
 
-        for page_num in tqdm(range(1, max_pages + 1), desc="Scraping GJOpen pages"):
+        for page_num in tqdm(range(1, MAX_PAGES + 1), desc="Scraping GJOpen pages"):
             question_links = await self._fetch_question_links_for_page(page_num)
             if not question_links:
                 # print(f"No more question links found on page {page_num}. Stopping.")
@@ -286,27 +286,21 @@ class GoodJudgmentOpenScraper(BaseScraper):
                     print(f"    Failed to process {link}: {e}")
                 finally:
                     if i < len(question_links) - 1:
-                        # Synchronous sleep in async method - not ideal. Consider asyncio.sleep if refactoring fully.
                         time.sleep(PAUSE_AFTER_MARKET) 
             
             if not market_objs_on_page and question_links:
-                 # print(f"No market objects successfully parsed from page {page_num}, though links were found. Stopping.")
                  break
             
             all_markets_data.extend(market_objs_on_page)
-            print([market.predictors_count for market in market_objs_on_page])
 
-            if not all(market.predictors_count >= min_n_forecasters for market in market_objs_on_page):
-                print(f"Stopping early on page {page_num} as no markets with at least {min_n_forecasters} forecasters were found.")
+            print([market.predictors_count < min_n_forecasters for market in market_objs_on_page])
+            if all(market.predictors_count < min_n_forecasters for market in market_objs_on_page):
                 break
             
             if not market_objs_on_page and not question_links:
-                # print(f"Stopping early on page {page_num} as no links or markets were found.")
                 break
 
-            if page_num < max_pages:
-                # Synchronous sleep
-                time.sleep(PAUSE_AFTER_PAGE)
+            time.sleep(PAUSE_AFTER_PAGE)
 
         # GJOpen does not provide resolution status directly in the list or question props easily.
         # The `only_open` filter is thus hard to apply perfectly at this stage for GJOpenMarket itself.
@@ -325,15 +319,12 @@ if __name__ == "__main__":
             scraper = GoodJudgmentOpenScraper()
             print("Successfully initialized scraper.")
             
-            num_pages_to_fetch = 20
-            print(f"Fetching the first {num_pages_to_fetch} page(s) of markets sorted by predictor count...")
             start_time = time.time()
             
             async with scraper:  # Use async context manager
                 # Fetch markets using get_pooled_markets directly
                 pooled_markets = await scraper.get_pooled_markets(
                     only_open=True, 
-                    max_pages=num_pages_to_fetch
                 )
                 
                 end_time = time.time()

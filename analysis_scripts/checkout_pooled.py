@@ -4,15 +4,16 @@ from pathlib import Path
 import pandas as pd
 from matplotlib import pyplot as plt
 import numpy as np
-from find_questions import MyMetaculusApi
+from parser_metaculus import MyMetaculusApi
 
 df_file = Path("/Users/vigji/code/vigjibot/data/combined_markets.csv")
 df = pd.read_csv(df_file)
 
 from embedding_utils import embed_questions_df
 # %%
-meta_df = MyMetaculusApi.find_
-
+meta_df = MyMetaculusApi.get_all_questions_df()
+# %%
+meta_df.head()
 # %%
 df.source_platform.value_counts()
 # %%
