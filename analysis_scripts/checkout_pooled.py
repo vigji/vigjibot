@@ -28,38 +28,12 @@ embedded_df["formatted_outcomes"] = pooled_df["formatted_outcomes"]
 embedded_df = embedded_df.reset_index(drop=True)
 embedded_df.head()
 
-from sklearn.metrics.pairwise import cosine_similarity
-
-def get_distance_matrix(combined_df):
-    """Create a distance matrix of the embeddings."""
-    embeddings = combined_df.drop(['source_platform', 'question', 'formatted_outcomes'], axis=1)
-    cosine_similarity_matrix = cosine_similarity(embeddings)
-    distance_matrix = 1 - cosine_similarity_matrix
-    np.fill_diagonal(distance_matrix, np.inf)
-
-    return distance_matrix
-
-
-def get_closest_questions(row, distance_matrix, df, n_closest=10):
-    """Get the 10 closest questions from the distance matrix."""
-    question_index = row.name
-    distances = distance_matrix[question_index]
-    
-    # Keep getting more indices until we have enough Polymarket questions
-    n_to_fetch = n_closest
-    poly_questions = []
-    closest_indices = np.argsort(distances)[:n_to_fetch]
-    closest_questions = df.iloc[closest_indices]
-    poly_questions = [(q, source, distance) for q, source, distance in zip(closest_questions['question'].tolist(), closest_questions['source_platform'].tolist(), distances[closest_indices]) if source != 'Metaculus']
-            
-    return poly_questions[:n_closest]
-
 
 distance_matrix = get_distance_matrix(embedded_df)
 
 # Create and show the visualization
-embedded_df["closest_questions"] = embedded_df.apply(lambda row: get_closest_questions(row, distance_matrix, embedded_df, n_closest=10), axis=1)
-embedded_df["closest_questions_text"] = embedded_df["closest_questions"].apply(lambda x: "\n".join([f"{q} ({source}; {distance})" for q, source, distance in x]))
+embedded_df["closest_questions"] = embedded_df.apply(lambda row: get_closest_questions(row, distance_matrix, embedded_df, n_closest=20), axis=1)
+embedded_df["closest_questions_text"] = embedded_df["closest_questions"].apply(lambda x: "\n".join([f"{q}  {a} ({source}; {distance})" for q, a, source, distance in x]))
 embedded_df.head()
 
 for i in [0, 2] + list(np.random.randint(0, len(embedded_df), 10)):
@@ -103,7 +77,7 @@ def create_visualization(df_to_viz):
         x='x',
         y='y',
         color='source_platform',
-        color_discrete_map={'Metaculus': 'red', 'Polymarket': 'gray', 'GJOpen': 'blue', 'PredictIt': 'green', "Manifold": 'orange'},
+        color_discrete_map={'Metaculus': 'red', 'Polymarket': 'gray', 'GJOpen': 'blue', 'PredictIt': 'lightgreen', "Manifold": 'orange'},
         hover_data=['question', 'source_platform', 'formatted_outcomes', 'closest_questions_formatted'],
         title='UMAP Visualization of Question Embeddings',
         labels={'x': 'TSNE Component 1', 'y': 'TSNE Component 2'}

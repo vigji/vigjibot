@@ -7,6 +7,7 @@ import numpy as np
 import pandas as pd
 import hashlib
 from tqdm import tqdm
+from sklearn.metrics.pairwise import cosine_similarity
 
 model = "BAAI/bge-m3"
 
@@ -80,6 +81,31 @@ def embed_questions_df(question_df, question_column="question", cache_folder=Non
     sanitized_questions = [q.strip() for q in questions_list]
     embeddings_array = embed_list_with_cache(sanitized_questions, chunk_size=chunk_size, cache_folder=cache_folder)
     return pd.DataFrame(embeddings_array, index=question_df.index)
+
+
+def get_distance_matrix(combined_df):
+    """Create a distance matrix of the embeddings."""
+    embeddings = combined_df.drop(['source_platform', 'question', 'formatted_outcomes'], axis=1)
+    cosine_similarity_matrix = cosine_similarity(embeddings)
+    distance_matrix = 1 - cosine_similarity_matrix
+    np.fill_diagonal(distance_matrix, np.inf)
+
+    return distance_matrix
+
+
+def get_closest_questions(row, distance_matrix, df, n_closest=20):
+    """Get the 10 closest questions from the distance matrix."""
+    question_index = row.name
+    distances = distance_matrix[question_index]
+    
+    # Keep getting more indices until we have enough Polymarket questions
+    n_to_fetch = n_closest
+    poly_questions = []
+    closest_indices = np.argsort(distances)[:n_to_fetch]
+    closest_questions = df.iloc[closest_indices]
+    poly_questions = [(q, a, source, distance) for q, a, source, distance in zip(closest_questions['question'].tolist(), closest_questions['formatted_outcomes'].tolist(), closest_questions['source_platform'].tolist(), distances[closest_indices]) if source != 'Metaculus']
+            
+    return poly_questions[:n_closest]
 
 
 if __name__ == "__main__":
