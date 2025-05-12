@@ -78,9 +78,10 @@ def get_closest_questions(row, distance_matrix, n_closest=10):
 distance_matrix = get_distance_matrix(embedded_df)
 
 # Create and show the visualization
-combined_df["closest_questions"] = combined_df.apply(lambda row: get_closest_questions(row, distance_matrix, n_closest=10), axis=1)
-combined_df["closest_questions_text"] = combined_df["closest_questions"].apply(lambda x: "\n".join(x))
-
+embedded_df["closest_questions"] = embedded_df.apply(lambda row: get_closest_questions(row, distance_matrix, n_closest=10), axis=1)
+embedded_df["closest_questions_text"] = embedded_df["closest_questions"].apply(lambda x: "\n".join(x))
+embedded_df = embedded_df.reset_index(drop=True)
+embedded_df.head()
 
 # %%
 from sklearn.manifold import TSNE
@@ -88,25 +89,25 @@ import plotly.express as px
 from sklearn.metrics.pairwise import cosine_similarity
 
 
-def reduce_dimensions(embeddings_df, n_components=2):
+def reduce_dimensions(embeddings_data, n_components=2):
     """Reduce dimensionality of embeddings using UMAP."""
     tsne = TSNE(n_components=n_components, random_state=42)
-    reduced_embeddings = tsne.fit_transform(embeddings_df)
+    reduced_embeddings = tsne.fit_transform(embeddings_data)
     return reduced_embeddings
 
-def create_visualization(combined_df):
+def create_visualization(df_to_viz):
     """Create an interactive plotly visualization of the embeddings."""
     
     # Reduce dimensions
-    reduced_embeddings = reduce_dimensions(combined_df.drop(['source', 'question_text', 'closest_questions_text', 'closest_questions'], axis=1))
+    reduced_embeddings = reduce_dimensions(df_to_viz.drop(['source_platform', 'question', 'closest_questions_text', 'closest_questions'], axis=1))
     
     # Create visualization DataFrame
     viz_df = pd.DataFrame(reduced_embeddings, columns=['x', 'y'])
-    viz_df['source'] = combined_df['source']
+    viz_df['source_platform'] = df_to_viz['source_platform']
     
     # Add question text and closest questions
-    viz_df['question_text'] = combined_df['question_text']
-    viz_df['closest_questions'] = combined_df['closest_questions']
+    viz_df['question'] = df_to_viz['question']
+    viz_df['closest_questions'] = df_to_viz['closest_questions']
     viz_df['closest_questions_formatted'] = viz_df['closest_questions'].apply(
         lambda x: "<br>".join([f"• {q}" for q in x])
     )
@@ -116,9 +117,9 @@ def create_visualization(combined_df):
         viz_df,
         x='x',
         y='y',
-        color='source',
-        color_discrete_map={'Metaculus': 'red', 'Polymarket': 'gray'},
-        hover_data=['question_text', 'closest_questions_formatted'],
+        color='source_platform',
+        color_discrete_map={'Metaculus': 'red', 'Polymarket': 'gray', 'GJOpen': 'blue', 'PredictIt': 'green', "Manifold": 'orange'},
+        hover_data=['question', 'closest_questions_formatted'],
         title='UMAP Visualization of Question Embeddings',
         labels={'x': 'TSNE Component 1', 'y': 'TSNE Component 2'}
     )
@@ -142,3 +143,7 @@ def create_visualization(combined_df):
     )
     
     return fig
+# %%
+create_visualization(embedded_df)
+# %%
+# %%
