@@ -210,7 +210,7 @@ class PolymarketGammaScraper(BaseScraper):
             return []
 
     # Note: Async, but internal calls are effectively synchronous due to _fetch_page_data
-    async def _fetch_all_raw_markets(self, max_requests: int = 200, limit_per_page: int = 100) -> List[Dict[str, Any]]:
+    async def _fetch_all_raw_markets(self, max_requests: int = 200, limit_per_page: int = 500) -> List[Dict[str, Any]]:
         all_raw_market_data: List[Dict[str, Any]] = []
         offset = 0
         
@@ -243,7 +243,7 @@ class PolymarketGammaScraper(BaseScraper):
             A list of PolymarketMarket objects.
         """
         max_requests = kwargs.get('max_requests', 200)
-        limit_per_page = kwargs.get('limit_per_page', 100)
+        limit_per_page = kwargs.get('limit_per_page', 500)
 
         raw_markets_data = await self._fetch_all_raw_markets(max_requests=max_requests, limit_per_page=limit_per_page)
         
@@ -273,17 +273,12 @@ if __name__ == "__main__":
     async def run_polymarket_scraper():
         print("Starting PolymarketGammaScraper example...")
         scraper = PolymarketGammaScraper()
-
         fetch_active = True
-        max_api_req = 3 # Reduced for quick example
-        limit_p_page = 50 # Reduced for quick example
-        print(f"Fetching {'active' if fetch_active else 'all'} markets from Polymarket (max_requests={max_api_req}, limit_per_page={limit_p_page})...")
         start_time = time.time()
         
         polymarket_list = await scraper.fetch_markets(
             only_open=fetch_active, 
-            # max_requests=max_api_req, 
-            # limit_per_page=limit_p_page
+
         )
         
         end_time = time.time()
@@ -292,23 +287,14 @@ if __name__ == "__main__":
         print(f"Fetched {len(polymarket_list)} Polymarket markets.")
 
         if polymarket_list:
-            # Convert to PooledMarket format using the inherited method
             print("\nConverting fetched Polymarket markets to PooledMarket format using get_pooled_markets...")
             pooled_markets = await scraper.get_pooled_markets(
-                only_open=fetch_active, 
-                max_requests=max_api_req, 
-                limit_per_page=limit_p_page
             )
             print(f"Converted {len(pooled_markets)} markets to PooledMarket format.")
 
             if pooled_markets:
                 print("Details of the first pooled market (Polymarket):")
                 pprint(pooled_markets[0].__dict__)
-
-                # Optional: Create a DataFrame
-                # df_pooled = pd.DataFrame([pm.__dict__ for pm in pooled_markets])
-                # print(f"Created DataFrame with {len(df_pooled)} pooled Polymarket markets.")
-                # print(df_pooled.head())
             else:
                 print("No Polymarket markets were successfully converted to PooledMarket format.")
         else:

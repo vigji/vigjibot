@@ -44,15 +44,16 @@ async def fetch_platform_markets(scraper, only_open: bool) -> tuple[str, List[Po
     start_time = time.time()
     
     try:
-        markets = await scraper.get_pooled_markets(only_open=only_open)
-        
-        # Save to cache
-        cache_file = save_markets_to_cache(markets, platform_name)
-        print(f"Saved {len(markets)} markets to cache: {cache_file}")
-        
-        end_time = time.time()
-        print(f"Fetched {len(markets)} markets from {platform_name} in {end_time - start_time:.2f} seconds")
-        return platform_name, markets
+        async with scraper:  # Use async context manager for proper session handling
+            markets = await scraper.get_pooled_markets(only_open=only_open)
+            
+            # Save to cache
+            cache_file = save_markets_to_cache(markets, platform_name)
+            print(f"Saved {len(markets)} markets to cache: {cache_file}")
+            
+            end_time = time.time()
+            print(f"Fetched {len(markets)} markets from {platform_name} in {end_time - start_time:.2f} seconds")
+            return platform_name, markets
     except Exception as e:
         print(f"Error fetching from {platform_name}: {e}")
         return platform_name, []
@@ -76,12 +77,17 @@ async def fetch_all_markets(only_open: bool = True) -> List[PooledMarket]:
     
     # Fetch from all platforms in parallel
     results = await asyncio.gather(
-        *[fetch_platform_markets(scraper, only_open) for scraper in scrapers]
+        *[fetch_platform_markets(scraper, only_open) for scraper in scrapers],
+        return_exceptions=True  # Handle exceptions gracefully
     )
     
-    # Combine results
+    # Combine results, handling any exceptions
     all_markets: List[PooledMarket] = []
-    for platform_name, markets in results:
+    for result in results:
+        if isinstance(result, Exception):
+            print(f"Error in parallel fetch: {result}")
+            continue
+        platform_name, markets = result
         all_markets.extend(markets)
     
     return all_markets

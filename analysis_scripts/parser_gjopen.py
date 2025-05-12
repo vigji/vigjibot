@@ -11,6 +11,7 @@ import os
 import pandas as pd
 import time
 from tqdm import tqdm
+import aiohttp
 
 from common_markets import PooledMarket, BaseMarket, BaseScraper
 
@@ -113,10 +114,10 @@ class GoodJudgmentOpenScraper(BaseScraper):
         environment variables (GJO_EMAIL, GJO_PASSWORD) or a JSON file
         (~/.gjopen_credentials.json).
         """
-        self.session = requests.Session()
-        self.session.headers.update({
+        self.session = None
+        self.headers = {
             "User-Agent": "Mozilla/5.0 (compatible; PythonScraper/1.0)"
-        })
+        }
 
         env_email = os.getenv("GJO_EMAIL")
         env_password = os.getenv("GJO_PASSWORD")
@@ -136,8 +137,15 @@ class GoodJudgmentOpenScraper(BaseScraper):
                 )
             self.email = creds["email"]
             self.password = creds["password"]
-        
-        self._login() # Synchronous login call
+
+    async def __aenter__(self):
+        self.session = aiohttp.ClientSession(headers=self.headers)
+        await self._login()
+        return self
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        if self.session:
+            await self.session.close()
 
     def _load_credentials_from_file(self):
         creds_file = Path.home() / ".gjopen_credentials.json"
@@ -151,15 +159,19 @@ class GoodJudgmentOpenScraper(BaseScraper):
         with open(creds_file) as f:
             return json.load(f)
 
-    def _login(self):
+    async def _login(self):
         """Logs into Good Judgment Open."""
+        if not self.session:
+            self.session = aiohttp.ClientSession(headers=self.headers)
+            
         try:
-            login_page = self.session.get(self.LOGIN_URL, timeout=10)
-            login_page.raise_for_status()
-        except requests.exceptions.RequestException as e:
+            async with self.session.get(self.LOGIN_URL, timeout=10) as response:
+                response.raise_for_status()
+                login_page = await response.text()
+        except aiohttp.ClientError as e:
             raise ConnectionError(f"Failed to fetch login page: {e}")
 
-        soup = BeautifulSoup(login_page.text, "html.parser")
+        soup = BeautifulSoup(login_page, "html.parser")
         csrf_token_tag = soup.select_one('meta[name="csrf-token"]')
         if not csrf_token_tag or not csrf_token_tag.get("content"):
             raise ValueError("Could not find CSRF token on login page.")
@@ -171,39 +183,47 @@ class GoodJudgmentOpenScraper(BaseScraper):
             "authenticity_token": csrf_token
         }
         try:
-            resp = self.session.post(self.LOGIN_URL, data=login_data, timeout=10)
-            resp.raise_for_status()
-        except requests.exceptions.RequestException as e:
+            async with self.session.post(self.LOGIN_URL, data=login_data, timeout=10) as response:
+                response.raise_for_status()
+                resp_text = await response.text()
+        except aiohttp.ClientError as e:
             raise ConnectionError(f"Login request failed: {e}")
 
-        if "Invalid Email or password" in resp.text or "sign_in" in resp.url:
+        if "Invalid Email or password" in resp_text or "sign_in" in str(response.url):
             raise ValueError("Login failed - please check credentials.")
-        # print("Successfully logged in.")
 
     async def _fetch_question_links_for_page(self, page: int=5) -> List[str]:
         """Fetches all question links from a given results page."""
+        if not self.session:
+            self.session = aiohttp.ClientSession(headers=self.headers)
+            
         url = f"{self.QUESTIONS_URL}?sort=predictors_count&sort_dir=desc&page={page}"
         try:
-            resp = self.session.get(url, timeout=10)
-            resp.raise_for_status()
-        except requests.exceptions.RequestException as e:
+            async with self.session.get(url, timeout=10) as response:
+                response.raise_for_status()
+                resp_text = await response.text()
+        except aiohttp.ClientError as e:
             print(f"    Warning: Failed to fetch page {page}: {e}")
             return []
         
-        soup = BeautifulSoup(resp.text, "html.parser")
+        soup = BeautifulSoup(resp_text, "html.parser")
         links = soup.find_all("a", href=re.compile(r"/questions/\d+"))
         return [urljoin(self.BASE_URL, link["href"]) for link in links]
 
     async def _fetch_market_data_for_url(self, question_url: str) -> Optional[GJOpenMarket]:
         """Fetches and parses market data for a single question URL."""
+        if not self.session:
+            self.session = aiohttp.ClientSession(headers=self.headers)
+            
         try:
-            resp = self.session.get(question_url, timeout=10)
-            resp.raise_for_status()
-        except requests.exceptions.RequestException as e:
+            async with self.session.get(question_url, timeout=10) as response:
+                response.raise_for_status()
+                resp_text = await response.text()
+        except aiohttp.ClientError as e:
             print(f"    Warning: Failed to fetch market data for {question_url}: {e}")
             return None
             
-        soup = BeautifulSoup(resp.text, "html.parser")
+        soup = BeautifulSoup(resp_text, "html.parser")
         react_div = soup.find(
             "div", {"data-react-class": "FOF.Forecast.PredictionInterfaces.OpinionPoolInterface"}
         )
@@ -213,21 +233,15 @@ class GoodJudgmentOpenScraper(BaseScraper):
                 props_str = react_div["data-react-props"]
                 props = json.loads(props_str)
             except json.JSONDecodeError:
-                # print(f"    Warning: Failed to decode JSON props for {question_url}")
                 return None
 
             q_props = props.get("question", {})
             if not q_props:
-                # print(f"    Warning: 'question' key missing in props for {question_url}")
                 return None
               
             market_data = GJOpenMarket.from_gjopen_question_data(q_props, question_url)
-            
             return market_data
-        else:
-            # This case might happen for questions without the specific react component (e.g. older ones, different types)
-            # print(f"    No react props div found for {question_url}, cannot extract structured data.")
-            return None
+        return None
 
     async def fetch_markets(self, only_open: bool = True, **kwargs: Any) -> List[GJOpenMarket]:
         """

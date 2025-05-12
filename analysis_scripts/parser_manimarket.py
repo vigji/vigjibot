@@ -233,9 +233,7 @@ class ManifoldScraper(BaseScraper):
     async def fetch_markets(
         self,
         only_open: bool = True,
-        limit: int = 1000,
-        max_pages_to_fetch: int = 10,
-        min_unique_bettors: int = 0,
+        min_unique_bettors: int = 30,
         min_volume: float = 0,
         **kwargs: Any
     ) -> List[ManifoldMarket]:
@@ -247,39 +245,23 @@ class ManifoldScraper(BaseScraper):
         last_market_id: Optional[str] = None
         markets_fetched_count = 0
 
-        pbar_overall = tqdm(total=limit, desc=f"Fetching Manifold markets (aiming for {limit})")
+        print(f"Fetching Manifold markets")
 
-        for page_num in range(max_pages_to_fetch):
-            if markets_fetched_count >= limit:
-                break
-
-            batch_limit = min(1000, limit - markets_fetched_count)
-            if batch_limit <= 0:
-                break
-
+        while True:
             current_batch = await self._fetch_raw_markets_list(
-                limit=batch_limit, 
+                limit=1000, #batch_limit, 
                 before=last_market_id, 
                 only_open=only_open
             )
-            
             if not current_batch:
                 break
-
             raw_markets_list_paginated.extend(current_batch)
             markets_fetched_count += len(current_batch)
-            pbar_overall.update(len(current_batch))
-            
-            if len(current_batch) < batch_limit:
-                break 
             
             last_market_id = current_batch[-1]["id"]
-            
-        pbar_overall.close()
-        
         if not raw_markets_list_paginated:
             return []
-            
+        
         markets_to_fetch_details_for_ids: List[str] = []
         for m_summary in raw_markets_list_paginated:
             if only_open and m_summary.get("isResolved", False):
@@ -314,58 +296,30 @@ class ManifoldScraper(BaseScraper):
 
 
 async def main():
+    from pprint import pprint
     print("Starting ManifoldScraper example...")
     async with ManifoldScraper(max_concurrent=5) as client:
-        print("Fetching ALL markets (including resolved ones)... Min 0 bettors, 0 volume, limit 50")
-        all_markets = await client.fetch_markets(
-            only_open=False, 
-            limit=50,
-            max_pages_to_fetch=2,
-            min_unique_bettors=0, 
-            min_volume=0
-        )
-        print(f"Found {len(all_markets)} ALL markets matching criteria.")
-        if all_markets:
-            print(f"First market (all): {all_markets[0].question}, Resolved: {all_markets[0].resolution is not None}")
-
-        print("\nFetching OPEN markets... Min 0 bettors, 0 volume, limit 50")
         open_markets = await client.fetch_markets(
             only_open=True, 
-            limit=50, 
-            max_pages_to_fetch=2,
-            min_unique_bettors=0, 
-            min_volume=0
         )
         print(f"Found {len(open_markets)} OPEN markets matching criteria.")
         if open_markets:
             print(f"First market (open): {open_markets[0].question}, Resolved: {open_markets[0].resolution is not None}")
 
-        print("\nFetching OPEN markets with min 50 bettors, min 500 volume, limit 50")
-        filtered_open_markets = await client.fetch_markets(
-            only_open=True,
-            limit=50,
-            max_pages_to_fetch=2,
-            min_unique_bettors=50,
-            min_volume=500
-        )
-        print(f"Found {len(filtered_open_markets)} filtered OPEN markets.")
-        if filtered_open_markets:
-            pprint(filtered_open_markets[0].__dict__)
+        print(f"Found {len(open_markets)} filtered OPEN markets.")
+        if open_markets:
+            pprint(open_markets[0].__dict__)
 
             print("\nConverting filtered open markets to PooledMarket format...")
             pooled_markets_data = await client.get_pooled_markets(
                 only_open=True,
-                limit=50,
-                max_pages_to_fetch=2,
-                min_unique_bettors=50,
-                min_volume=500
             )
             print(f"Got {len(pooled_markets_data)} pooled markets.")
             if pooled_markets_data:
                 pprint(pooled_markets_data[0].__dict__)
 
-            manually_pooled = [m.to_pooled_market() for m in filtered_open_markets]
-            print(f"Manually converted {len(manually_pooled)} markets.")
+            manually_pooled = [m.to_pooled_market() for m in open_markets]
+            print(f"converted {len(manually_pooled)} markets.")
 
 
 if __name__ == "__main__":
