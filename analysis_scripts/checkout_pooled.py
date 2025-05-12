@@ -30,39 +30,87 @@ plt.show()
 # %%
 gjopen_df = df[df.source_platform == "GJOpen"]
 # %%
-plt.figure()
-plt.hist(gjopen_df.n_forecasters, np.arange(0, 100, 10))
-plt.show()
-# %%
+
+# ================================================
+# Embed questions
+# ================================================
+
+combined_df = pd.concat([meta_df, df])
 embedded_df = embed_questions_df(df, question_column="question")
 # %%
 embedded_df.head()
+embedded_df["question"] = df["question"]
+embedded_df["source_platform"] = df["source_platform"]
 
 # %%
+from sklearn.metrics.pairwise import cosine_similarity
+
+def get_distance_matrix(combined_df):
+    """Create a distance matrix of the embeddings."""
+    embeddings = combined_df.drop(['source_platform', 'question'], axis=1)
+    cosine_similarity_matrix = cosine_similarity(embeddings)
+    distance_matrix = 1 - cosine_similarity_matrix
+
+    return distance_matrix
+
+
+def get_closest_questions(row, distance_matrix, n_closest=10):
+    """Get the 10 closest questions from the distance matrix."""
+    question_text = row['question']
+    question_index = combined_df.index[combined_df['question'] == question_text].tolist()[0]
+    distances = distance_matrix[question_index]
+    
+    # Keep getting more indices until we have enough Polymarket questions
+    n_to_fetch = n_closest
+    poly_questions = []
+    while len(poly_questions) < n_closest:
+        closest_indices = np.argsort(distances)[:n_to_fetch]
+        closest_questions = combined_df.iloc[closest_indices]
+        poly_questions = closest_questions[closest_questions['source_platform'] != 'Metaculus']['question'].tolist()
+        n_to_fetch += n_closest
+        
+        if n_to_fetch > len(distances):  # Prevent infinite loop
+            break
+            
+    return poly_questions[:n_closest]
+
+
+distance_matrix = get_distance_matrix(embedded_df)
+
+# Create and show the visualization
+combined_df["closest_questions"] = combined_df.apply(lambda row: get_closest_questions(row, distance_matrix, n_closest=10), axis=1)
+combined_df["closest_questions_text"] = combined_df["closest_questions"].apply(lambda x: "\n".join(x))
+
+
+# %%
+from sklearn.manifold import TSNE
+import plotly.express as px
+from sklearn.metrics.pairwise import cosine_similarity
+
 
 def reduce_dimensions(embeddings_df, n_components=2):
     """Reduce dimensionality of embeddings using UMAP."""
-    umap = UMAP(n_components=n_components, random_state=42)
-    reduced_embeddings = umap.fit_transform(embeddings_df)
+    tsne = TSNE(n_components=n_components, random_state=42)
+    reduced_embeddings = tsne.fit_transform(embeddings_df)
     return reduced_embeddings
 
-def create_visualization(meta_embeddings_df, poly_embeddings_df, meta_questions_df):
+def create_visualization(combined_df):
     """Create an interactive plotly visualization of the embeddings."""
-    # Combine embeddings
-    combined_df = combine_embeddings(meta_embeddings_df, poly_embeddings_df)
     
     # Reduce dimensions
-    reduced_embeddings = reduce_dimensions(combined_df.drop('source', axis=1))
+    reduced_embeddings = reduce_dimensions(combined_df.drop(['source', 'question_text', 'closest_questions_text', 'closest_questions'], axis=1))
     
     # Create visualization DataFrame
     viz_df = pd.DataFrame(reduced_embeddings, columns=['x', 'y'])
     viz_df['source'] = combined_df['source']
     
-    # Add question text
-    viz_df['question_text'] = ''
-    viz_df.loc[viz_df['source'] == 'Metaculus', 'question_text'] = meta_questions_df['question_text'].values
-    viz_df.loc[viz_df['source'] == 'Polymarket', 'question_text'] = poly_embeddings_df.index.map(lambda x: x if isinstance(x, str) else '')
-    
+    # Add question text and closest questions
+    viz_df['question_text'] = combined_df['question_text']
+    viz_df['closest_questions'] = combined_df['closest_questions']
+    viz_df['closest_questions_formatted'] = viz_df['closest_questions'].apply(
+        lambda x: "<br>".join([f"• {q}" for q in x])
+    )
+
     # Create the plot
     fig = px.scatter(
         viz_df,
@@ -70,15 +118,16 @@ def create_visualization(meta_embeddings_df, poly_embeddings_df, meta_questions_
         y='y',
         color='source',
         color_discrete_map={'Metaculus': 'red', 'Polymarket': 'gray'},
-        hover_data=['question_text'],
+        hover_data=['question_text', 'closest_questions_formatted'],
         title='UMAP Visualization of Question Embeddings',
-        labels={'x': 'UMAP Component 1', 'y': 'UMAP Component 2'}
+        labels={'x': 'TSNE Component 1', 'y': 'TSNE Component 2'}
     )
     
     # Customize hover template
     fig.update_traces(
         hovertemplate="<br>".join([
             "Question: %{customdata[0]}",
+            "Closest Questions:<br>%{customdata[1]}<br>",
             "<extra></extra>"
         ])
     )
@@ -87,7 +136,9 @@ def create_visualization(meta_embeddings_df, poly_embeddings_df, meta_questions_
     fig.update_layout(
         hovermode='closest',
         showlegend=True,
-        legend_title_text='Source'
+        legend_title_text='Source',
+        width=1000,
+        height=1000
     )
     
     return fig
