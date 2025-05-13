@@ -179,6 +179,9 @@ class TemplateForecaster(ForecastBot):
             if not isinstance(response, pd.DataFrame):
                 response = pd.DataFrame(response)
             return self._format_mootlib_questions_and_answers(response)
+            print("#########################")
+            print(response)
+            print("#########################")
         except Exception as e:
             logger.warning(f"Error calling mootlib: {e}")
             return ""
