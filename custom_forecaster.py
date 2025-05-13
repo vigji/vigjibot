@@ -261,7 +261,8 @@ class CustomForecaster(TemplateForecaster):
             question,
             research,
             prompt,
-            lambda reasoning, q: PredictionExtractor.extract_option_list_with_percentage_afterwards(
+            lambda reasoning,
+            q: PredictionExtractor.extract_option_list_with_percentage_afterwards(
                 reasoning, q.options
             ),
         )
@@ -317,7 +318,8 @@ class CustomForecaster(TemplateForecaster):
             question,
             research,
             prompt,
-            lambda reasoning, q: PredictionExtractor.extract_numeric_distribution_from_list_of_percentile_number_and_probability(
+            lambda reasoning,
+            q: PredictionExtractor.extract_numeric_distribution_from_list_of_percentile_number_and_probability(
                 reasoning, q
             ),
         )
@@ -423,7 +425,9 @@ if __name__ == "__main__":
         "test_questions",
     ], "Invalid run mode"
 
-    template_bot = forecaster_factory(model_name)(
+    template_bot = forecaster_factory(
+        model_name
+    )(
         research_reports_per_question=1,
         predictions_per_research_report=1,
         use_research_summary_to_forecast=False,

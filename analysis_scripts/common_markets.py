@@ -14,7 +14,9 @@ class PooledMarket:
     outcome_probabilities: List[
         Optional[float]
     ]  # Corresponding probabilities for outcomes
-    formatted_outcomes: str  # Single string representation, e.g., "Yes: 60.0%; No: 40.0%"
+    formatted_outcomes: (
+        str  # Single string representation, e.g., "Yes: 60.0%; No: 40.0%"
+    )
     url: str  # Direct URL to the market
     published_at: Optional[
         datetime
@@ -25,12 +27,12 @@ class PooledMarket:
     volume: Optional[float] = None  # Trading volume
     n_forecasters: Optional[int] = None  # Number of unique predictors/bettors
     comments_count: Optional[int] = None
-    original_market_type: Optional[
-        str
-    ] = None  # Platform-specific type, e.g., "BINARY", "MULTIPLE_CHOICE"
-    is_resolved: Optional[
-        bool
-    ] = None  # True if the market is resolved/closed, False if open, None if unknown
+    original_market_type: Optional[str] = (
+        None  # Platform-specific type, e.g., "BINARY", "MULTIPLE_CHOICE"
+    )
+    is_resolved: Optional[bool] = (
+        None  # True if the market is resolved/closed, False if open, None if unknown
+    )
 
     # To store the original market object for further details if needed, not part of repr
     raw_market_data: Optional[Any] = field(default=None, repr=False, compare=False)

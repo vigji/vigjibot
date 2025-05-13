@@ -16,6 +16,7 @@ openai = "^1.57.4"
 python-dotenv = "^1.0.1"
 forecasting-tools = "^0.2.23"
 ipykernel = "^6.29.5"
+mootlib = "^0.1.0"
 
 
 [tool.poetry.group.dev.dependencies]

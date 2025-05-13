@@ -311,6 +311,29 @@ tests = ["cloudpickle ; platform_python_implementation == \"CPython\"", "hypothe
 tests-mypy = ["mypy (>=1.11.1) ; platform_python_implementation == \"CPython\" and python_version >= \"3.10\"", "pytest-mypy-plugins ; platform_python_implementation == \"CPython\" and python_version >= \"3.10\""]
 
 [[package]]
+name = "beautifulsoup4"
+version = "4.13.4"
+description = "Screen-scraping library"
+optional = false
+python-versions = ">=3.7.0"
+groups = ["main"]
+files = [
+    {file = "beautifulsoup4-4.13.4-py3-none-any.whl", hash = "sha256:9bbbb14bfde9d79f38b8cd5f8c7c85f4b8f2523190ebed90e950a8dea4cb1c4b"},
+    {file = "beautifulsoup4-4.13.4.tar.gz", hash = "sha256:dbb3c4e1ceae6aefebdaf2423247260cd062430a410e38c66f2baa50a8437195"},
+]
+
+[package.dependencies]
+soupsieve = ">1.2"
+typing-extensions = ">=4.0.0"
+
+[package.extras]
+cchardet = ["cchardet"]
+chardet = ["chardet"]
+charset-normalizer = ["charset-normalizer"]
+html5lib = ["html5lib"]
+lxml = ["lxml"]
+
+[[package]]
 name = "blinker"
 version = "1.9.0"
 description = "Fast, simple object-to-object and broadcast signaling"
@@ -1556,6 +1579,32 @@ files = [
 
 [package.dependencies]
 traitlets = "*"
+
+[[package]]
+name = "mootlib"
+version = "0.1.2"
+description = "A library for scraping and analyzing forecasting markets"
+optional = false
+python-versions = ">=3.11"
+groups = ["main"]
+files = [
+    {file = "mootlib-0.1.2-py3-none-any.whl", hash = "sha256:30292290ba5e529e9cefbd055cd84bc3c149b2b7ccce309faab824760e060e2a"},
+    {file = "mootlib-0.1.2.tar.gz", hash = "sha256:e585cd83d2f62836dc5f75d69d44b416a30ad55d7b7b60ec82cd3ed580bfb3e8"},
+]
+
+[package.dependencies]
+aiohttp = ">=3.9.3"
+beautifulsoup4 = ">=4.12.0"
+forecasting-tools = ">=0.1.0"
+openai = ">=1.3.0"
+pandas = ">=2.0.0,<3.0.0"
+python-dotenv = ">=1.0.1"
+requests = ">=2.31.0"
+scikit-learn = ">=1.3.2"
+tqdm = ">=4.65.0"
+
+[package.extras]
+dev = ["mypy (>=1.3.0)", "pre-commit (>=3.5.0)", "pytest (>=7.4.0)", "pytest-asyncio (>=0.21.0)", "pytest-cov (>=4.1.0)", "ruff (>=0.2.1)"]
 
 [[package]]
 name = "multidict"
@@ -3246,6 +3295,18 @@ files = [
 ]
 
 [[package]]
+name = "soupsieve"
+version = "2.7"
+description = "A modern CSS selector implementation for Beautiful Soup."
+optional = false
+python-versions = ">=3.8"
+groups = ["main"]
+files = [
+    {file = "soupsieve-2.7-py3-none-any.whl", hash = "sha256:6e60cc5c1ffaf1cebcc12e8188320b72071e922c2e897f737cadce79ad5d30c4"},
+    {file = "soupsieve-2.7.tar.gz", hash = "sha256:ad282f9b6926286d2ead4750552c8a6142bc4c783fd66b0293547c8fe6ae126a"},
+]
+
+[[package]]
 name = "stack-data"
 version = "0.6.3"
 description = "Extract data from python stack frames and tracebacks for informative displays"
@@ -3805,4 +3866,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.11"
-content-hash = "c77827fd3bb7737442ad326194e6ee4c0a1b93553d276aa67bb91c3f3537911e"
+content-hash = "b3cc2e6866b2df789b0a0e85ada1ebb81e945533fa710578e7ed2e97c76c587d"

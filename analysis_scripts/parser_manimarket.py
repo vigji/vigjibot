@@ -257,7 +257,9 @@ class ManifoldScraper(BaseScraper):
 
         while True:
             current_batch = await self._fetch_raw_markets_list(
-                limit=1000, before=last_market_id, only_open=only_open  # batch_limit,
+                limit=1000,
+                before=last_market_id,
+                only_open=only_open,  # batch_limit,
             )
             if not current_batch:
                 break

@@ -2,6 +2,7 @@
 """
 Test that CustomForecaster.run_research correctly caches results across instances.
 """
+
 import asyncio
 import os
 

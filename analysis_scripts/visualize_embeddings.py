@@ -43,9 +43,9 @@ def create_visualization(meta_embeddings_df, poly_embeddings_df, meta_questions_
     viz_df.loc[viz_df["source"] == "Metaculus", "question_text"] = meta_questions_df[
         "question_text"
     ].values
-    viz_df.loc[
-        viz_df["source"] == "Polymarket", "question_text"
-    ] = poly_embeddings_df.index.map(lambda x: x if isinstance(x, str) else "")
+    viz_df.loc[viz_df["source"] == "Polymarket", "question_text"] = (
+        poly_embeddings_df.index.map(lambda x: x if isinstance(x, str) else "")
+    )
 
     # Create the plot
     fig = px.scatter(

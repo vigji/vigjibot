@@ -5,6 +5,8 @@ import os
 import dotenv
 from datetime import datetime
 from typing import Literal
+from mootlib import MootlibMatcher
+import pandas as pd
 
 dotenv.load_dotenv()
 
@@ -51,12 +53,17 @@ class TemplateForecaster(ForecastBot):
 
     If you end up having trouble with rate limits and want to try a more sophisticated rate limiter try:
     ```
-    from forecasting_tools.ai_models.resource_managers.refreshing_bucket_rate_limiter import RefreshingBucketRateLimiter
+    from forecasting_tools.ai_models.resource_managers.refreshing_bucket_rate_limiter import (
+        RefreshingBucketRateLimiter,
+    )
+
     rate_limiter = RefreshingBucketRateLimiter(
         capacity=2,
         refresh_rate=1,
-    ) # Allows 1 request per second on average with a burst of 2 requests initially. Set this as a class variable
-    await self.rate_limiter.wait_till_able_to_acquire_resources(1) # 1 because it's consuming 1 request (use more if you are adding a token limit)
+    )  # Allows 1 request per second on average with a burst of 2 requests initially. Set this as a class variable
+    await self.rate_limiter.wait_till_able_to_acquire_resources(
+        1
+    )  # 1 because it's consuming 1 request (use more if you are adding a token limit)
     ```
     Additionally OpenRouter has large rate limits immediately on account creation
     """
@@ -95,7 +102,27 @@ class TemplateForecaster(ForecastBot):
                 )
                 research = ""
             logger.info(f"Found Research for URL {question.page_url}:\n{research}")
+
+            # if os.getenv("MOOTLIB_API_KEY"):
+                # print("#########################")
+            other_forecasts = await self._call_mootlib(question.question_text)
+            research += other_forecasts
             return research
+        
+    @staticmethod
+    def _format_mootlib_questions_and_answers(response):
+        final_response = ["\nYou can condition your forecasts on the following questions and answers, if you find them relevant (they are not necessarily related to the question you are forecasting on):\n"]
+        
+        # Ensure we have all required columns
+        required_cols = ["question", "formatted_outcomes", "source_platform"]
+        if not all(col in response.columns for col in required_cols):
+            logger.warning(f"Missing required columns in mootlib response. Found columns: {response.columns}")
+            return ""
+
+        for _, row in response.iterrows():
+            final_response.append(f"{row['question']}: {row['formatted_outcomes']} ({row['source_platform']})")
+
+        return "\n".join(final_response)
 
     async def _call_perplexity(
         self, question: str, use_open_router: bool = False
@@ -141,6 +168,20 @@ class TemplateForecaster(ForecastBot):
         )  # You can ask the searcher to filter by date, exclude/include a domain, and run specific searches for finding sources vs finding highlights within a source
         response = await searcher.invoke(prompt)
         return response
+    
+    async def _call_mootlib(self, question: str) -> str:
+        try:
+            matcher = MootlibMatcher()
+            # Remove await since find_similar_questions appears to be synchronous
+            response = matcher.find_similar_questions(question, n_results=10, 
+                                           min_similarity=0.5)
+            # Convert response to DataFrame if it's not already
+            if not isinstance(response, pd.DataFrame):
+                response = pd.DataFrame(response)
+            return self._format_mootlib_questions_and_answers(response)
+        except Exception as e:
+            logger.warning(f"Error calling mootlib: {e}")
+            return ""
 
     async def _run_forecast_on_binary(
         self, question: BinaryQuestion, research: str
@@ -211,6 +252,8 @@ class TemplateForecaster(ForecastBot):
 
             Your research assistant says:
             {research}
+
+
 
             Today is {datetime.now().strftime("%Y-%m-%d")}.
 
