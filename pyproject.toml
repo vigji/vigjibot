@@ -19,10 +19,24 @@ dependencies = [
     "mootlib>=0.3.0"
 ]
 
+[project.dependencies]
+python-decouple = ">=3.8"
+requests = ">=2.32.3"
+asknews = "0.11.7"
+numpy = ">=1.26.0"
+openai = ">=1.57.4"
+python-dotenv = ">=1.0.1"
+forecasting-tools = ">=0.2.23"
+ipykernel = ">=6.29.5"
+mootlib = ">=0.3.0"
+
 [build-system]
 requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
 py-modules = []
+
+[tool.pip]
+compile-dependencies = true
 

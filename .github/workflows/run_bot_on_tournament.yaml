@@ -35,7 +35,7 @@ jobs:
         run: |
           uv venv .venv
           . .venv/bin/activate
-          uv pip install .
+          uv pip install -r <(uv pip compile pyproject.toml --format requirements)
       - name: Run bot
         run: |
           . .venv/bin/activate
