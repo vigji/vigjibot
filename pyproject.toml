@@ -16,10 +16,13 @@ dependencies = [
     "python-dotenv>=1.0.1",
     "forecasting-tools>=0.2.23",
     "ipykernel>=6.29.5",
-    "mootlib>=0.3.0",
+    "mootlib>=0.3.0"
 ]
 
 [build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+py-modules = []
 
