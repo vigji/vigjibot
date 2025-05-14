@@ -2,7 +2,7 @@ import argparse
 import asyncio
 import logging
 import os
-import dotenv
+from dotenv import load_dotenv
 from datetime import datetime
 from typing import Literal
 from mootlib import MootlibMatcher
@@ -10,7 +10,7 @@ import pandas as pd
 import litellm
 litellm._turn_on_debug()
 
-dotenv.load_dotenv()
+load_dotenv()
 
 from forecasting_tools import (
     AskNewsSearcher,

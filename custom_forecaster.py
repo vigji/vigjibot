@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Any, Callable, TypeVar, Union
 from utils import load_forecasters_dict
 import asyncio
-import dotenv
+from dotenv import load_dotenv
 
 import json
 from forecasting_tools import (
@@ -26,7 +26,7 @@ T = TypeVar("T", float, PredictedOptionList, NumericDistribution)
 
 forecasters_dict = load_forecasters_dict()
 
-dotenv.load_dotenv()
+load_dotenv()
 
 
 class CustomForecaster(TemplateForecaster):
