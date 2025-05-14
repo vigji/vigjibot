@@ -434,7 +434,7 @@ if __name__ == "__main__":
                       "min_similarity": 0.5, 
                       "exclude_platforms": []},
         llms={  # choose your model names or GeneralLlm llms here, otherwise defaults will be chosen for you
-            "default": "openrouter/anthropic/claude-3.7-sonnet",
+            "default": "metaculus/anthropic/claude-3-7-sonnet-latest",
             # "default": "openrouter/meta-llama/llama-4-maverick:free",
             # "default": GeneralLlm(
             #     model="openrouter/anthropic/claude-3.7-sonnet",
