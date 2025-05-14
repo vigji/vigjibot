@@ -6,9 +6,10 @@ from typing import Any, Callable, TypeVar, Union
 from utils import load_forecasters_dict
 import asyncio
 import dotenv
-import json
 
+import json
 from forecasting_tools import (
+    GeneralLlm,
     MetaculusQuestion,
     BinaryQuestion,
     MultipleChoiceQuestion,
@@ -37,7 +38,7 @@ class CustomForecaster(TemplateForecaster):
     # Updated cache structure to include timestamps
     _research_cache: dict[
         str, dict[str, str]
-    ] = {}  # {url: {"data": research_data, "timestamp": iso_date}}
+    ] = {}  # {cache_key: {"data": research_data, "timestamp": iso_date}}
     _research_locks: dict[str, asyncio.Lock] = {}
 
     # Cache file path in project directory
@@ -83,12 +84,24 @@ class CustomForecaster(TemplateForecaster):
         except Exception as e:
             logger.warning(f"Error saving cache to disk: {e}")
 
+    def _generate_cache_key(self, url: str) -> str:
+        """Generate a unique cache key that includes mootlib settings."""
+        base_key = url
+        if hasattr(self, 'use_mootlib'):
+            base_key += f"_mootlib_{self.use_mootlib}"
+            if self.use_mootlib and hasattr(self, 'mootlib_args'):
+                # Sort the dictionary items to ensure consistent key generation
+                sorted_args = sorted(self.mootlib_args.items())
+                args_str = '_'.join(f"{k}_{v}" for k, v in sorted_args)
+                base_key += f"_{args_str}"
+        return base_key
+
     async def run_research(self, question: MetaculusQuestion) -> str:
         # Load cache if not already loaded
         if not CustomForecaster._cache_loaded:
             CustomForecaster._load_cache_from_disk()
 
-        key = question.page_url
+        key = self._generate_cache_key(question.page_url)
         now = datetime.now()
 
         # Fast path: already cached and not expired
@@ -98,13 +111,14 @@ class CustomForecaster(TemplateForecaster):
 
             # Check if cache entry is still valid (less than 30 days old)
             if now - entry_date < CustomForecaster._max_cache_age:
-                logger.info(f"Cache hit in CustomForecaster for URL {key}")
+                logger.info(f"Cache hit in CustomForecaster for key {key}")
                 return cache_entry["data"]
             else:
-                logger.info(f"Cache entry for URL {key} has expired (> 30 days old)")
+                logger.info(f"Cache entry for key {key} has expired (> 30 days old)")
 
         # Ensure only one concurrent fetch per URL
         lock = CustomForecaster._research_locks.setdefault(key, asyncio.Lock())
+
         async with lock:
             # Double-check cache inside lock
             if key in CustomForecaster._research_cache:
@@ -114,7 +128,7 @@ class CustomForecaster(TemplateForecaster):
                 # Check again if still valid
                 if now - entry_date < CustomForecaster._max_cache_age:
                     logger.info(
-                        f"Cache hit in CustomForecaster for URL {key}; returning cached research."
+                        f"Cache hit in CustomForecaster for key {key}; returning cached research."
                     )
                     return cache_entry["data"]
 
@@ -220,6 +234,7 @@ class CustomForecaster(TemplateForecaster):
             You write your rationale remembering that good forecasters put extra weight on the status quo outcome since the world changes slowly most of the time.
 
             The last thing you write is your final answer as: "Probability: ZZ%", 0-100, indicating the probability of a Yes outcome.
+            You do not include any other text after the probability in your answer. You do not put the probability between any kind of special characters.
         """
 
         prompt = clean_indents(base_prompt + binary_specific)
@@ -284,7 +299,7 @@ class CustomForecaster(TemplateForecaster):
             {upper_bound_message}
 
             Formatting Instructions:
-            - Please notice the units requested (e.g. whether you represent a number as 1,000,000 or 1 million).
+            - Please notice the units requested. Do not indicate magnitudes using words like "thousand", "million", "billion", etc., unless the units for the question are "thousands" or "millions", etc.
             - Never use scientific notation.
             - Always start with a smaller number (more negative if negative) and then increase from there
 
@@ -309,7 +324,8 @@ class CustomForecaster(TemplateForecaster):
             "
 
             Write every percentile value only once not to confuse the parser, and do not include any other text after the percentiles in your answer.
-            
+            Make sure that the probability distribution has fat tails on both ends over the whole interval {question.lower_bound} to {question.upper_bound}.
+
         """
 
         prompt = clean_indents(base_prompt + numeric_specific)
@@ -436,8 +452,19 @@ if __name__ == "__main__":
         skip_previously_forecasted_questions=True,
         # forecaster_description=forecaster_description,
         # forecaster_name=model_name,
+        use_mootlib=True,
+        mootlib_args={"n_results": 10, 
+                      "min_similarity": 0.5, 
+                      "exclude_platforms": ["Metaculus"]},
         llms={  # choose your model names or GeneralLlm llms here, otherwise defaults will be chosen for you
-            "default": "openrouter/meta-llama/llama-4-maverick:free",
+            "default": GeneralLlm(
+                model="metaculus/openai/o4-mini",
+                # model="metaculus/anthropic/claude-3-7-sonnet-latest",  # "metaculus/anthropic/claude-3-5-sonnet-20241022",  # metaculus/anthropic
+                temperature=1,
+                timeout=40,
+                allowed_tries=2,
+            ), # 
+            # "openrouter/meta-llama/llama-4-maverick:free",
             "summarizer": "openrouter/meta-llama/llama-4-maverick:free",
         },
     )
@@ -462,7 +489,8 @@ if __name__ == "__main__":
         EXAMPLE_QUESTIONS = [
             # "https://www.metaculus.com/questions/578/human-extinction-by-2100/",  # Human Extinction - Binary
             # "https://www.metaculus.com/questions/14333/age-of-oldest-human-as-of-2100/",  # Age of Oldest Human - Numeric
-            "https://www.metaculus.com/questions/22427/number-of-new-leading-ai-labs/",  # Number of New Leading AI Labs - Multiple Choice
+            # "https://www.metaculus.com/questions/22427/number-of-new-leading-ai-labs/",  # Number of New Leading AI Labs - Multiple Choice
+        "https://www.metaculus.com/questions/35261/"
         ]
         template_bot.skip_previously_forecasted_questions = False
         questions = [

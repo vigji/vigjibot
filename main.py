@@ -7,6 +7,8 @@ from datetime import datetime
 from typing import Literal
 from mootlib import MootlibMatcher
 import pandas as pd
+import litellm
+litellm._turn_on_debug()
 
 dotenv.load_dotenv()
 
@@ -73,6 +75,18 @@ class TemplateForecaster(ForecastBot):
     )
     _concurrency_limiter = asyncio.Semaphore(_max_concurrent_questions)
 
+    def __init__(self, *args, use_mootlib=True, mootlib_args={"n_results": 10, "min_similarity": 0.5, "exclude_platforms": []},**kwargs):
+        super().__init__(*args, **kwargs)
+        
+        self.use_mootlib = use_mootlib
+        self.mootlib_matcher = None
+        self.mootlib_args = mootlib_args
+        if use_mootlib:
+            self.mootlib_matcher = MootlibMatcher()
+            print("#########################")
+            print("Using Mootlib")
+            print("#########################")
+
     async def run_research(self, question: MetaculusQuestion) -> str:
         async with self._concurrency_limiter:
             research = ""
@@ -102,16 +116,17 @@ class TemplateForecaster(ForecastBot):
                 )
                 research = ""
             logger.info(f"Found Research for URL {question.page_url}:\n{research}")
-
-            # if os.getenv("MOOTLIB_API_KEY"):
-                # print("#########################")
+            # research += ">>>>>>>>>>"
             other_forecasts = await self._call_mootlib(question.question_text)
             research += other_forecasts
             return research
         
     @staticmethod
     def _format_mootlib_questions_and_answers(response):
-        final_response = ["\nYou can condition your forecasts on the following questions and answers, if you find them relevant (they are not necessarily related to the question you are forecasting on):\n"]
+        final_response = ["\n\nYou are also given the following validated probabilities from other prediction markets."
+                          "Condition your forecasts on these probabilities if you find them relevant.\n"
+                          "If one of them matches precisely the question, keep it in very high consideration when formulating your forecast.\n"
+                          ]
         
         # Ensure we have all required columns
         required_cols = ["question", "formatted_outcomes", "source_platform"]
@@ -120,9 +135,9 @@ class TemplateForecaster(ForecastBot):
             return ""
 
         for _, row in response.iterrows():
-            final_response.append(f"{row['question']}: {row['formatted_outcomes']} ({row['source_platform']})")
+            final_response.append(f"\n{row['question']}: {row['formatted_outcomes']} ({row['source_platform']})")
 
-        return "\n".join(final_response)
+        return "".join(final_response)
 
     async def _call_perplexity(
         self, question: str, use_open_router: bool = False
@@ -170,18 +185,17 @@ class TemplateForecaster(ForecastBot):
         return response
     
     async def _call_mootlib(self, question: str) -> str:
+        if self.mootlib_matcher is None:
+            return ""
         try:
-            matcher = MootlibMatcher()
             # Remove await since find_similar_questions appears to be synchronous
-            response = matcher.find_similar_questions(question, n_results=10, 
-                                           min_similarity=0.5)
+            response = self.mootlib_matcher.find_similar_questions(question, 
+                                                                   **self.mootlib_args)
             # Convert response to DataFrame if it's not already
             if not isinstance(response, pd.DataFrame):
                 response = pd.DataFrame(response)
             return self._format_mootlib_questions_and_answers(response)
-            print("#########################")
-            print(response)
-            print("#########################")
+
         except Exception as e:
             logger.warning(f"Error calling mootlib: {e}")
             return ""
@@ -220,6 +234,7 @@ class TemplateForecaster(ForecastBot):
             You write your rationale remembering that good forecasters put extra weight on the status quo outcome since the world changes slowly most of the time.
 
             The last thing you write is your final answer as: "Probability: ZZ%", 0-100, indicating the probability of a Yes outcome.
+            You do not include any other text after the probability in your answer. You do not put the probability between any kind of special characters.
             """
         )
         logger.info(f"Full prompt:\n{prompt}")
@@ -411,17 +426,23 @@ if __name__ == "__main__":
         research_reports_per_question=1,
         predictions_per_research_report=5,
         use_research_summary_to_forecast=False,
-        publish_reports_to_metaculus=True,
+        publish_reports_to_metaculus=False,
         folder_to_save_reports_to=None,
-        skip_previously_forecasted_questions=True,
+        skip_previously_forecasted_questions=False,
+        use_mootlib=True,
+        mootlib_args={"n_results": 10, 
+                      "min_similarity": 0.5, 
+                      "exclude_platforms": []},
         llms={  # choose your model names or GeneralLlm llms here, otherwise defaults will be chosen for you
-            # "default": "openrouter/anthropic/claude-3.7-sonnet",
-            "default": GeneralLlm(
-                model="openrouter/anthropic/claude-3.7-sonnet",  # "metaculus/anthropic/claude-3-5-sonnet-20241022",  # metaculus/anthropic
-                temperature=0.3,
-                timeout=40,
-                allowed_tries=2,
-            ),
+            "default": "openrouter/anthropic/claude-3.7-sonnet",
+            # "default": "openrouter/meta-llama/llama-4-maverick:free",
+            # "default": GeneralLlm(
+            #     model="openrouter/anthropic/claude-3.7-sonnet",
+            #     # model="metaculus/anthropic/claude-3-7-sonnet-latest",  # "metaculus/anthropic/claude-3-5-sonnet-20241022",  # metaculus/anthropic
+            #     temperature=0.3,
+            #     timeout=40,
+            #     allowed_tries=2,
+            # ),
             "summarizer": "openrouter/meta-llama/llama-4-maverick:free",
         },
     )

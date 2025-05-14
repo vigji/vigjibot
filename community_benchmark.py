@@ -6,6 +6,7 @@ import logging
 import sys
 from datetime import datetime, timedelta
 from typing import Literal
+from pathlib import Path
 
 import typeguard
 from forecasting_tools import (
@@ -57,54 +58,83 @@ async def benchmark_forecast_bot(mode: str) -> None:
 
     with MonetaryCostManager() as cost_manager:
         bots = [
-            # TemplateForecaster(
-            #     predictions_per_research_report=5,
-            #     llms={
-            #         "default": GeneralLlm(
-            #             model="meta-llama/llama-4-maverick:free",
-            #             temperature=0.3,
-            #             timeout=40,
-            #             allowed_tries=2,
-            #         ),
-            #     },
-            # ),
-            # TemplateForecaster(
-            #     predictions_per_research_report=1,
-            #     llms={
-            #         "default": GeneralLlm(
-            #             model="thudm/glm-z1-9b:free",
-            #             temperature=0.3,
-            #             timeout=40,
-            #             allowed_tries=2,
-            #         ),
-            #     },
-            # ),
-            # TemplateForecaster(
-            #     predictions_per_research_report=1,
-            #     llms={
-            #         "default": GeneralLlm(
-            #             model="microsoft/mai-ds-r1:free",
-            #             temperature=0.3,
-            #             timeout=40,
-            #             allowed_tries=2,
-            #         ),
-            #     },
-            # ),
+
             TemplateForecaster(
                 predictions_per_research_report=1,
+                use_mootlib=False,
                 llms={
-                    "default": "openrouter/meta-llama/llama-4-maverick:free",
+                    "default": "metaculus/anthropic/claude-3-7-sonnet-latest",
                     "summarizer": "openrouter/meta-llama/llama-4-maverick:free",
                 },
             ),
-            TemplateForecaster(
-                predictions_per_research_report=1,
-                llms={
-                    "default": "openrouter/openai/o4-mini",
-                    "summarizer": "openrouter/openai/gpt-4o-mini",
-                },
-            ),
-            # Add other ForecastBots here (or same bot with different parameters)
+            # TemplateForecaster(
+            #     predictions_per_research_report=1,
+            #     use_mootlib=True,
+            #     mootlib_args={"n_results": 10, 
+            #           "min_similarity": 0.5, 
+            #           "exclude_platforms": ["Metaculus"]},
+            #     llms={
+            #         "default": "metaculus/anthropic/claude-3-7-sonnet-latest",
+            #         "summarizer": "openrouter/meta-llama/llama-4-maverick:free",
+            #     },
+            # ),
+            # TemplateForecaster(
+            #     predictions_per_research_report=1,
+            #     use_mootlib=False,
+            #     llms={
+            #         "default": "metaculus/openai/o3",
+            #         "summarizer": "openrouter/meta-llama/llama-4-maverick:free",
+            #     },
+            # ),
+            # TemplateForecaster(
+            #     predictions_per_research_report=1,
+            #     use_mootlib=True,
+            #     mootlib_args={"n_results": 10, 
+            #           "min_similarity": 0.5, 
+            #           "exclude_platforms": ["Metaculus"]},
+            #     llms={
+            #         "default": "metaculus/openai/o3",
+            #         "summarizer": "openrouter/meta-llama/llama-4-maverick:free",
+            #     },
+            # ),
+            # TemplateForecaster(
+            #     predictions_per_research_report=1,
+            #     use_mootlib=False,
+            #     llms={
+            #         "default": "metaculus/openai/o4-mini",
+            #         "summarizer": "openrouter/meta-llama/llama-4-maverick:free",
+            #     },
+            # ),
+            # TemplateForecaster(
+            #     predictions_per_research_report=1,
+            #     use_mootlib=True,
+            #     mootlib_args={"n_results": 10, 
+            #           "min_similarity": 0.5, 
+            #           "exclude_platforms": ["Metaculus"]},
+            #     llms={
+            #         "default": "metaculus/openai/o4-mini",
+            #         "summarizer": "openrouter/meta-llama/llama-4-maverick:free",
+            #     },
+            # ),
+            # TemplateForecaster(
+            #     predictions_per_research_report=1,
+            #     use_mootlib=False,
+            #     llms={
+            #         "default": "openrouter/meta-llama/llama-4-maverick:free",
+            #         "summarizer": "openrouter/meta-llama/llama-4-maverick:free",
+            #     },
+            # ),
+            # TemplateForecaster(
+            #     predictions_per_research_report=1,
+            #     use_mootlib=True,
+            #     mootlib_args={"n_results": 10, 
+            #           "min_similarity": 0.5, 
+            #           "exclude_platforms": ["Metaculus"]},
+            #     llms={
+            #         "default": "openrouter/meta-llama/llama-4-maverick:free",
+            #         "summarizer": "openrouter/meta-llama/llama-4-maverick:free",
+            #     },
+            # ),
         ]
         bots = typeguard.check_type(bots, list[ForecastBot])
         benchmarks = await Benchmarker(
@@ -122,16 +152,29 @@ async def benchmark_forecast_bot(mode: str) -> None:
 
 
 if __name__ == "__main__":
-    logging.basicConfig(
-        level=logging.INFO,
-        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-        handlers=[
-            logging.StreamHandler(sys.stdout),
-            logging.FileHandler(
-                f"benchmarks/log_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.log"
-            ),
-        ],
-    )
+    # Create log filename and ensure the directory exists
+    log_filename = f"benchmarks/log_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.log"
+    Path("benchmarks").mkdir(exist_ok=True)
+    
+    # Create and configure file handler directly
+    file_handler = logging.FileHandler(log_filename, mode='w', encoding='utf-8')
+    file_handler.setLevel(logging.INFO)
+    file_handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
+    
+    # Create and configure stream handler
+    stream_handler = logging.StreamHandler(sys.stdout)
+    stream_handler.setLevel(logging.INFO)
+    stream_handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
+    
+    # Configure root logger
+    root_logger = logging.getLogger()
+    root_logger.setLevel(logging.INFO)
+    root_logger.addHandler(file_handler)
+    root_logger.addHandler(stream_handler)
+
+    # Test log messages
+    logger.info("Logging system initialized")
+    logger.info(f"Log file location: {log_filename}")
 
     # Suppress LiteLLM logging
     litellm_logger = logging.getLogger("LiteLLM")

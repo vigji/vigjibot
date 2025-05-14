@@ -1582,14 +1582,14 @@ traitlets = "*"
 
 [[package]]
 name = "mootlib"
-version = "0.1.2"
+version = "0.3.0"
 description = "A library for scraping and analyzing forecasting markets"
 optional = false
 python-versions = ">=3.11"
 groups = ["main"]
 files = [
-    {file = "mootlib-0.1.2-py3-none-any.whl", hash = "sha256:30292290ba5e529e9cefbd055cd84bc3c149b2b7ccce309faab824760e060e2a"},
-    {file = "mootlib-0.1.2.tar.gz", hash = "sha256:e585cd83d2f62836dc5f75d69d44b416a30ad55d7b7b60ec82cd3ed580bfb3e8"},
+    {file = "mootlib-0.3.0-py3-none-any.whl", hash = "sha256:9385aadd9a7d0a76c111b0e10b01cef039444c59a39a4bf0076f1ffa9ff905c4"},
+    {file = "mootlib-0.3.0.tar.gz", hash = "sha256:4e579b4952686dee3d00596e486e71ae5fb8c4aecea88204396c7682209e382b"},
 ]
 
 [package.dependencies]
@@ -3866,4 +3866,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.11"
-content-hash = "b3cc2e6866b2df789b0a0e85ada1ebb81e945533fa710578e7ed2e97c76c587d"
+content-hash = "0394f1bb684b84c115178fe4f7e98a3797c0b4fb3860266077af64455083c026"
