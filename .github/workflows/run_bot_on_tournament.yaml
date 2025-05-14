@@ -35,7 +35,6 @@ jobs:
         run: |
           uv venv .venv
           . .venv/bin/activate
-          uv pip install python-dotenv==1.0.1
           uv pip install -e .
       - name: Run bot
         run: |
