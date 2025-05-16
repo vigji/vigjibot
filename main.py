@@ -8,8 +8,18 @@ from typing import Literal
 from mootlib import MootlibMatcher
 import pandas as pd
 import litellm
-litellm._turn_on_debug()
 
+# Initialize Mootlib before anything else
+print("#########################")
+print("Loading Mootlib data - this may take a while...")
+print("#########################")
+_mootlib = MootlibMatcher()
+_mootlib._ensure_fresh_data()
+print("#########################")
+print("Mootlib data loaded successfully!")
+print("#########################")
+
+litellm._turn_on_debug()
 load_dotenv()
 
 from forecasting_tools import (
@@ -467,12 +477,13 @@ if __name__ == "__main__":
     elif run_mode == "test_questions":
         # Example questions are a good way to test the bot's performance on a single question
         EXAMPLE_QUESTIONS = [
-            "https://www.metaculus.com/questions/37615"
-            # "https://www.metaculus.com/questions/578/human-extinction-by-2100/",  # Human Extinction - Binary
+            # "https://www.metaculus.com/questions/37615"
+            "https://www.metaculus.com/questions/578/human-extinction-by-2100/",  # Human Extinction - Binary
             # "https://www.metaculus.com/questions/14333/age-of-oldest-human-as-of-2100/",  # Age of Oldest Human - Numeric
             # "https://www.metaculus.com/questions/22427/number-of-new-leading-ai-labs/",  # Number of New Leading AI Labs - Multiple Choice
         ]
         template_bot.skip_previously_forecasted_questions = False
+        template_bot.predictions_per_research_report = 1
         questions = [
             MetaculusApi.get_question_by_url(question_url)
             for question_url in EXAMPLE_QUESTIONS
