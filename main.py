@@ -83,6 +83,7 @@ class TemplateForecaster(ForecastBot):
         self.mootlib_args = mootlib_args
         if use_mootlib:
             self.mootlib_matcher = MootlibMatcher()
+            self.mootlib_matcher._ensure_fresh_data()
             print("#########################")
             print("Using Mootlib")
             print("#########################")
