@@ -391,6 +391,7 @@ class TemplateForecaster(ForecastBot):
                 f"The outcome can not be lower than {question.lower_bound}."
             )
         return upper_bound_message, lower_bound_message
+    
 
 
 if __name__ == "__main__":
@@ -428,7 +429,7 @@ if __name__ == "__main__":
         use_research_summary_to_forecast=False,
         publish_reports_to_metaculus=True,
         folder_to_save_reports_to=None,
-        skip_previously_forecasted_questions=False,
+        skip_previously_forecasted_questions=True,
         use_mootlib=True,
         mootlib_args={"n_results": 10, 
                       "min_similarity": 0.5, 

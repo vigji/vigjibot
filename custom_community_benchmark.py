@@ -34,7 +34,7 @@ async def benchmark_forecast_bot(mode: str) -> None:
     """
 
     number_of_questions = (
-        110  # Recommend 100+ for meaningful error bars, but 30 is faster/cheaper
+        50  # Recommend 100+ for meaningful error bars, but 30 is faster/cheaper
     )
     if mode == "display":
         run_benchmark_streamlit_page()
@@ -87,12 +87,14 @@ async def benchmark_forecast_bot(mode: str) -> None:
                     # "default": "metaculus/openai/o4-mini",
                 },
             )
-            for model_name in list(forecasters_dict.keys())[:1] 
+            
             for model in ["metaculus/anthropic/claude-3-7-sonnet-latest",
-                          GeneralLlm(model="metaculus/openai/o4-mini", temperature=1, 
-                                          timeout=40, allowed_tries=2),
-                          "metaculus/openai/o3"]
-            for mootlib in [False, True]
+                          # GeneralLlm(model="metaculus/openai/o4-mini", temperature=1, 
+                          #                 timeout=40, allowed_tries=2),
+                          "metaculus/openai/o3"
+                          ]
+            for model_name in list(forecasters_dict.keys())[:12] 
+            for mootlib in [True]
             
         ]
 
